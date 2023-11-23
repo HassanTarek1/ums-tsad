@@ -1,0 +1,28 @@
+name: ums-tsad
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - scikit-learn
+  - tqdm
+  - ipykernel
+  - ipywidgets
+  - nb_conda_kernels
+  - matplotlib
+  - pandas
+  - patool
+  - setuptools
+  - cvxopt
+  - cvxpy
+  - networkx
+  - statsmodels
+  - torch
+  - loguru
+  - flask
+  - pyod
+  - numpy
+  - requests
+  - pyyaml
+
+  # - ruptures

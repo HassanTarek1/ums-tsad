@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div >
+    <form method="post">
+        <label>select a dataset:</label>
+        <b></b>
+        <select name="dataset_selection" id="dataset_selection"
+                onchange="changefield('singer_selection',data_entity_selection,'/changeselectfield/')">
+
+            {% for data_type in data_types %}
+                <option value="{{ data_type }}"> {{ data_type }} </option>
+            {% endfor %}
+        </select>
+         <input type="submit" value="提交">
+    </form>
+</div>
+
+</body>
+</html>

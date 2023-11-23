@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ums-tsad</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script type="text/javascript">
+    $(function() {
+    $('#dataset_selection').change(function() {
+    var dataset_type = $(this).val();
+
+
+            $.ajax({
+
+            data: {dataset_type: dataset_type},
+
+            type : 'POST',
+            url : '/mdata/getDataSetEntityHtml',
+
+            success: function(data){
+             $('#dataset_entity_selection').html(data);
+             }
+            })
+        });
+    });
+    </script>
+
+
+
+
+</head>
+
+
+
+
+<body>
+
+<div class="wrapper">
+<div class="box0">
+<fieldset>
+    <legend>Flash The Page:</legend>
+<h3><a href="/">flash</a></h3>
+
+</fieldset>
+</div>
+<form action="/mmodel/train" method="POST">
+
+
+
+<div class="box1">
+
+      <fieldset>
+          <legend>Choose DataSet:</legend>
+<select class="form-control"  id="dataset_selection" name="dataset_selection">
+
+    <option selected="selected">--select a dataset--</option>
+
+    {% for dataset_type in dataset_types %}
+            <option value="{{ dataset_type }}"> {{ dataset_type }} </option>
+    {% endfor %}
+</select>
+      </fieldset>
+</div>
+
+
+
+<div class="box2">
+    <fieldset>
+          <legend>Choose Data Entity:</legend>
+<select class="form-control" id="dataset_entity_selection" name="dataset_entity_selection">
+    <option selected="selected">--select a dataset entity--</option>
+</select>
+        </fieldset>
+</div>
+
+
+
+    <fieldset>
+    <legend>Choose Algorithms:</legend>
+    {% for algorithm in algorithm_list %}
+    <div>
+      <input name="algorithm_option" value="{{ algorithm }}" type="checkbox">
+      <label >{{ algorithm }}</label>
+    </div>
+
+    {% endfor %}
+    </fieldset>
+
+
+
+
+<input type="submit" value="train" >
+</form>
+
+</div>
+
+{% if table_flag: %}
+
+  <table id="data" class="table table-striped"  style="margin-left:45px;margin-block:10px 20px;margin-inline: 5% 10%;gap:50px 500px;">
+    <thead>
+      <tr>
+        <th>DataSet Entity</th>
+        <th>Algorithm</th>
+        <th>DataSet Type</th>
+        <th>Inject Abnormal Type</th>
+        <th>Best Model</th>
+        <th>Prediction Error</th>
+        <th>Inject Abnormal</th>
+        <th>Evaluate Model</th>
+        <th>Operate</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for data_info in data_infos %}
+        <tr>
+            <td>{{ data_info.dataset_entity }}</td>
+            <td>{{ data_info.algorithms }}</td>
+             <td>{{ data_info.dataset_type }}</td>
+            <td>{{ data_info.inject_abn_types }}</td>
+            <td>{{ data_info.best_model }}</td>
+
+            <td><a href="/mmodel/check?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}">Link</a></td>
+            <td><a href="/mevaluation/injectAbn?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}">Link</a></td>
+            <td><a href="/mevaluation/evaluateModel?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}">Link</a></td>
+            <td><a href="/mdata/deleteDataInfo?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}">Delete</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+{% endif %}
+</body>
+</html>

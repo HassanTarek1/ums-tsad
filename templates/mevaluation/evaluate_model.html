@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>evaluate model</title>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script type="text/javascript">
+    $(function() {
+    $('#search_evaluate_img').bind('click',function() {
+
+    var dataset_type = $('input[name="dataset_type"]').val();
+    var dataset_entity = $('input[name="dataset_entity"]').val();
+
+
+
+            $.ajax({
+
+            data: {dataset_type: dataset_type,dataset_entity:dataset_entity},
+
+            type : 'POST',
+            url : '/mevaluation/searchEvaluateImg',
+
+            success: function(data){
+             $('#model_evaluate_result').html(data);
+             }
+            })
+        });
+    });
+    </script>
+</head>
+<body>
+
+
+
+
+
+<input type="hidden" name="dataset_type" value="{{dataset_type}}">
+<input type="hidden" name="dataset_entity" value="{{dataset_entity}}">
+<input id="search_evaluate_img" type="button" value="Search Evaluate Images">
+
+
+<form action="/mevaluation/revaluateModel"  method="POST">
+    <input type="hidden" name="dataset_type" value="{{dataset_type}}">
+    <input type="hidden" name="dataset_entity" value="{{dataset_entity}}">
+    <input id="Reassess the model" type="submit" value="Reassess The Model">
+</form>
+
+
+<div id="model_evaluate_result"></div>
+</body>
+</html>

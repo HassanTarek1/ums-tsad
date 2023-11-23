@@ -1,0 +1,14 @@
+table {
+  border-collapse: separate;
+  border-spacing: 50px 0;
+}
+
+td {
+  padding: 10px 0;
+  background: #ccc; /* Remove this line to disable grey background color */
+}
+
+.wrapper {
+  display: flex;
+}
+

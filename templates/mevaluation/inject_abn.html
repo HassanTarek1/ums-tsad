@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inject Abnormal</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <script type="text/javascript">
+    $(function() {
+    $('#search_abn_img').bind('click',function() {
+
+    var dataset_type = $('input[name="dataset_type"]').val();
+    var dataset_entity = $('input[name="dataset_entity"]').val();
+    var abn_types = $('input[name="abn_types"]').val();
+<!--    alert(dataset_type)-->
+
+            $.ajax({
+
+            data: {dataset_type: dataset_type,dataset_entity:dataset_entity,abn_types:abn_types},
+
+            type : 'POST',
+            url : '/mevaluation/searchImg',
+
+            success: function(data){
+             $('#dataset_entity_selection').html(data);
+             }
+            })
+        });
+    });
+    </script>
+</head>
+<body>
+
+<div>
+    <fieldset>
+    <legend>Flash The Page:</legend>
+<h3><a href="/mevaluation/injectAbn?dataset_type={{dataset_type}}&dataset_entity={{dataset_entity}}&algorithms={{algorithms}}&flash_flag=True">flash</a></h3>
+
+    </fieldset>
+</div>
+
+
+<div>
+    <fieldset>
+    <legend>Return to First Page:</legend>
+<h3><a href="/">return</a></h3>
+
+    </fieldset>
+</div>
+
+
+
+<form action="/mevaluation/injectAbn" method="POST">
+<fieldset>
+    <input type="hidden" name="dataset_type" value="{{dataset_type}}">
+    <input type="hidden" name="dataset_entity" value="{{dataset_entity}}">
+
+    <legend><input type="submit" value="Inject Abnormal"></legend>
+    {% for abn_type in abn_type_list %}
+    <div>
+      <input name="abn_option" value="{{ abn_type }}" type="checkbox">
+      <label >{{ abn_type }}</label>
+    </div>
+
+    {% endfor %}
+</fieldset>
+
+</form>
+
+{% if search_abn_img: %}
+
+
+    <input type="hidden" name="dataset_type" value="{{dataset_type}}">
+    <input type="hidden" name="dataset_entity" value="{{dataset_entity}}">
+    <input type="hidden" name="abn_types" value="{{abn_types}}">
+    <input id="search_abn_img" type="button" value="Search Abnormal Images">
+
+
+{% endif %}
+
+<div id="dataset_entity_selection"></div>
+
+
+
+</body>
+</html>
