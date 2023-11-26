@@ -3,6 +3,9 @@ import shutil
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Tuple, Union
+
+from sklearn.model_selection import train_test_split
+
 from datasets.dataset import Entity, Dataset
 from utils.data_utils import download_file
 from sklearn.preprocessing import MinMaxScaler
@@ -18,7 +21,11 @@ SMD_URL = 'https://raw.githubusercontent.com/NetManAIOps/OmniAnomaly/master/Serv
 NASA_DATA_URI = r'https://s3-us-west-2.amazonaws.com/telemanom/data.zip'
 NASA_LABELS_URI = r'https://raw.githubusercontent.com/khundman/telemanom/master/labeled_anomalies.csv'
 ANOMALY_ARCHIVE_URI = r'https://www.cs.ucr.edu/~eamonn/time_series_data_2018/UCR_TimeSeriesAnomalyDatasets2021.zip'
-VALID_DATASETS = ['msl', 'smap', 'smd', 'anomaly_archive', 'swat', 'synthetic']
+VALID_DATASETS = ['msl', 'smap', 'smd', 'anomaly_archive', 'swat', 'synthetic','skab']
+
+
+
+
 
 def load_data(dataset: str, group: str, entities: Union[str, List[str]], downsampling: float=None, min_length: float=None, root_dir:str='./data', normalize:bool=True, verbose:bool=True):
     """Function to load TS anomaly detection datasets.
@@ -43,6 +50,8 @@ def load_data(dataset: str, group: str, entities: Union[str, List[str]], downsam
         return load_smd(group=group, machines=entities, downsampling=downsampling, root_dir=root_dir, normalize=normalize, verbose=verbose)
     elif dataset == 'msl':
         return load_msl(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir, normalize=normalize, verbose=verbose)
+    elif dataset == 'skab':
+        return load_skab(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir, normalize=normalize, verbose=verbose)
     elif dataset == 'smap':
         return load_smap(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir, normalize=normalize, verbose=verbose)
     elif dataset == 'anomaly_archive':
@@ -149,6 +158,52 @@ def download_nasa(root_dir='./data'):
                   directory=os.path.join(root_dir),
                   source_url=NASA_LABELS_URI,
                   decompress=False)
+
+def load_skab(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
+    root_dir = f'{root_dir}/SKAB'
+    scaler = MinMaxScaler()
+    entities = []
+    files_list = []
+    entities_names = []
+    for root, dirs, files in os.walk(root_dir):
+        for dir in dirs:
+            for file in os.listdir(f'{root_dir}/{dir}'):
+                file_name = file.split('.')[0]
+                entity_name = f'{dir}-{file_name}'
+                file_path=f'{dir}/{file}'
+                files_list.append(file_path)
+                entities_names.append(entity_name)
+
+    for i in range(len(files_list)):
+        path = files_list[i]
+        df = pd.read_csv(f"{root_dir}/{path}", index_col='datetime', sep=';', parse_dates=True)
+        X = df.drop(['anomaly', 'changepoint'], axis=1)
+        y = df['anomaly']
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+        X_train = X_train.values.T
+        X_test = X_test.values.T
+        y_train = y_train.values.T
+        y_test = y_test.values.T
+        if group == 'train':
+            name = 'skab-train'
+            if normalize:
+                scaler.fit(X_train)
+                Y = scaler.transform(X_train)
+            entity = Entity(Y=Y, name=entities_names[i], labels=y_train, verbose=verbose)
+            entities.append(entity)
+
+        elif group == 'test':
+            name = 'skab-test'
+            if normalize:
+                scaler.fit(X_test)
+                Y = scaler.transform(X_test)
+
+            entity = Entity(Y=Y, name=entities_names[i], labels=y_test, verbose=verbose)
+            entities.append(entity)
+    skab = Dataset(entities=entities, name=name, verbose=verbose)
+
+    return skab
+    pass
 
 def load_msl(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
     return _load_nasa(group=group, spacecraft='MSL', channels=channels, downsampling=downsampling, root_dir=root_dir, normalize=normalize, verbose=verbose)
