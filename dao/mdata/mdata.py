@@ -1,9 +1,21 @@
+import os
 
 from utils.db_utils import get_db_conn
 from loguru import logger
 con = get_db_conn()
 
-
+def check_new_dataset(root_dir):
+    sql = "select distinct DATASET_TYPE from UMS_TSAD_DATA"
+    res = con.execute(sql).fetchall()
+    dataset_types = [i[0] for i in res]
+    dataset_list = []
+    with os.scandir(root_dir) as entries:
+        dataset_list = [entry.name for entry in entries if entry.is_dir()]
+    dataset_list = [dataset.lower() for dataset in dataset_list]
+    new_datasets = set(dataset_list) - set(dataset_types)
+    new_datasets = list(new_datasets)
+    logger.info(f'new data sets are {new_datasets}')
+    return new_datasets
 def query_data_type():
     sql = "select distinct DATASET_TYPE from UMS_TSAD_DATA"
     res = con.execute(sql).fetchall()
