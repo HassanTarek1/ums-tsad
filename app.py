@@ -4,9 +4,11 @@ from factory import create_app
 from settings import DevelopmentConfig
 from loguru import logger
 from dao.mdata.mdata import check_new_dataset
+from dao.mdata.mdata import add_new_datasets
 from dao.mdata.mdata import query_data_type,select_data_entity_by_status,select_inject_abn_types_by_data_entity,select_best_model_by_data_entity
 from dao.mmodel.mmodel import query_algorithm_name
 from utils.utils import get_args_from_cmdline
+
 app = create_app()
 
 @app.route('/',methods = ['GET','POST'])
@@ -16,6 +18,7 @@ def index():
         args = get_args_from_cmdline()
         data_dir = args['dataset_path']
         new_datasets = check_new_dataset(data_dir)
+        new_datasets_path = add_new_datasets(new_datasets, data_dir)
         dataset_types = query_data_type()
 
         algorithm_list = query_algorithm_name()
