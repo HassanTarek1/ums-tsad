@@ -29,7 +29,7 @@ def add_new_datasets(datasets: list, root_dir):
     :param root_dir: the directory containing the datasets
     :return: a list of all paths to the new csv files that represent the datsets
     """
-    csv_file_paths = []
+    names_of_entities = []
     for dataset in datasets:
         path = f'{root_dir}/{dataset}'
         # Get a list of all entries (files and directories) in the specified directory
@@ -37,23 +37,22 @@ def add_new_datasets(datasets: list, root_dir):
 
         # Check if there are any subdirectories
         subdirectories = [entry for entry in entries if os.path.isdir(os.path.join(path, entry))]
-        csv_files = [file for file in os.listdir(path) if file.endswith(".csv")]
-        csv_file_paths.extend([os.path.join(path, file) for file in os.listdir(path) if
+        added_datasets = [file for file in os.listdir(path) if file.endswith(".csv")]
+        names_of_entities.extend([os.path.join(path, file) for file in os.listdir(path) if
                                file.lower().endswith('.csv')])
         for sub_directory in subdirectories:
-            csv_files.extend([file for file in os.listdir(f'{path}/{sub_directory}') if file.endswith(".csv")])
-            csv_file_paths.extend(
-                [os.path.join(f'{path}/{sub_directory}', file) for file in os.listdir(f'{path}/{sub_directory}') if
-                 file.lower().endswith('.csv')])
-        for csv_file in csv_files:
+            added_datasets.append(sub_directory)
+            print(sub_directory)
+            names_of_entities.append(f'{path}/{sub_directory}')
+        for entity in added_datasets:
             cursor = con.cursor()
-            csv_file = csv_file.rstrip(".csv")
+            # entity = entity.rstrip(".csv")
             sql = "INSERT INTO UMS_TSAD_DATA (DATA_ENTITY,DATASET_TYPE,DATA_STATUS) VALUES (?,?,0)"
-            res = cursor.execute(sql, (csv_file, dataset)).fetchall()
+            res = cursor.execute(sql, (entity, dataset)).fetchall()
             con.commit()
-            logger.info(f'Added {csv_file} from {dataset} dataset')
+            logger.info(f'Added {entity} from {dataset} dataset')
 
-    return csv_file_paths
+    return names_of_entities
 
 
 def query_data_type():

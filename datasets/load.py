@@ -23,7 +23,7 @@ SMD_URL = 'https://raw.githubusercontent.com/NetManAIOps/OmniAnomaly/master/Serv
 NASA_DATA_URI = r'https://s3-us-west-2.amazonaws.com/telemanom/data.zip'
 NASA_LABELS_URI = r'https://raw.githubusercontent.com/khundman/telemanom/master/labeled_anomalies.csv'
 ANOMALY_ARCHIVE_URI = r'https://www.cs.ucr.edu/~eamonn/time_series_data_2018/UCR_TimeSeriesAnomalyDatasets2021.zip'
-VALID_DATASETS = ['msl', 'smap', 'smd', 'anomaly_archive', 'swat', 'synthetic', 'skab','apple']
+VALID_DATASETS = ['msl', 'smap', 'smd', 'anomaly_archive', 'swat', 'synthetic', 'skab', 'apple']
 
 
 def load_data(dataset: str, group: str, entities: Union[str, List[str]], downsampling: float = None,
@@ -61,15 +61,57 @@ def load_data(dataset: str, group: str, entities: Union[str, List[str]], downsam
     elif dataset == 'anomaly_archive':
         return load_anomaly_archive(group=group, datasets=entities, downsampling=downsampling, min_length=min_length,
                                     root_dir=root_dir, normalize=normalize, verbose=verbose)
-    elif dataset == 'apple':
-        return load_apple(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
-                          normalize=normalize, verbose=verbose)
     elif dataset == 'swat':
         raise NotImplementedError()
     elif dataset == 'synthetic':
         raise NotImplementedError()
     else:
-        raise ValueError(f'Dataset must be one of {VALID_DATASETS}, but {dataset} was passed!')
+        return load_any_dataset(group=group, root_dir=root_dir, dataset=dataset, entity=entities,
+                         normalize=normalize, verbose=verbose)
+
+
+def load_csv_file(data_path: str, name_of_data: str, group: str, normalize: bool, verbose: bool):
+    scaler = MinMaxScaler()
+    entities = []
+
+    df = pd.read_csv(data_path, index_col=0, parse_dates=True)
+    X = df
+    X_train, X_test, = train_test_split(X, test_size=0.2, random_state=42)
+    X_train = X_train.values.T
+    X_test = X_test.values.T
+    if group == 'train':
+        name = f'{name_of_data}-train'
+        if normalize:
+            scaler.fit(X_train)
+            Y = scaler.transform(X_train)
+        entity = Entity(Y=Y, name=name_of_data, verbose=verbose)
+        entities.append(entity)
+
+    elif group == 'test':
+        name = f'{name_of_data}-test'
+        if normalize:
+            scaler.fit(X_test)
+            Y = scaler.transform(X_test)
+
+        entity = Entity(Y=Y, name=name_of_data, verbose=verbose)
+        entities.append(entity)
+    dataset = Dataset(entities=entities, name=name, verbose=verbose)
+
+    return dataset
+
+
+def load_any_dataset(group, root_dir, dataset, entity, normalize=True, verbose=True):
+    data_path = f'{root_dir}/{dataset}/{entity}'
+    if os.path.isfile(f'{data_path}.csv'):
+        dataset = load_csv_file(f'{data_path}.csv', entity, group, normalize, verbose)
+    else:
+        csv_files = [os.path.join(data_path, file) for file in os.listdir(data_path) if file.lower().endswith('.csv')]
+        if len(csv_files) > 1 :
+            raise Exception("Exceeded the number of allowed .csv files. Only 1 csv file should be present")
+        else:
+            dataset = load_csv_file(csv_files[0], entity, group, normalize, verbose)
+
+    return dataset
 
 
 def load_smd(group, machines=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
@@ -218,38 +260,37 @@ def load_skab(group, channels=None, downsampling=None, root_dir='./data', normal
     return skab
     pass
 
-def load_apple(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
 
-    root_dir = f'{root_dir}/apple'
-    scaler = MinMaxScaler()
-    entities = []
-
-
-    df = pd.read_csv(f"{root_dir}/AAPL.csv", index_col=0, parse_dates=True)
-    X = df
-
-    X_train, X_test,  = train_test_split(X, test_size=0.2, random_state=42)
-    X_train = X_train.values.T
-    X_test = X_test.values.T
-    if group == 'train':
-        name = 'apple-train'
-        if normalize:
-            scaler.fit(X_train)
-            Y = scaler.transform(X_train)
-        entity = Entity(Y=Y, name='apple', verbose=verbose)
-        entities.append(entity)
-
-    elif group == 'test':
-        name = 'apple-test'
-        if normalize:
-            scaler.fit(X_test)
-            Y = scaler.transform(X_test)
-
-        entity = Entity(Y=Y, name='apple', verbose=verbose)
-        entities.append(entity)
-    apple = Dataset(entities=entities, name=name, verbose=verbose)
-
-    return apple
+# def load_apple(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
+#     root_dir = f'{root_dir}/apple'
+#     scaler = MinMaxScaler()
+#     entities = []
+#
+#     df = pd.read_csv(f"{root_dir}/AAPL.csv", index_col=0, parse_dates=True)
+#     X = df
+#
+#     X_train, X_test, = train_test_split(X, test_size=0.2, random_state=42)
+#     X_train = X_train.values.T
+#     X_test = X_test.values.T
+#     if group == 'train':
+#         name = 'apple-train'
+#         if normalize:
+#             scaler.fit(X_train)
+#             Y = scaler.transform(X_train)
+#         entity = Entity(Y=Y, name='apple', verbose=verbose)
+#         entities.append(entity)
+#
+#     elif group == 'test':
+#         name = 'apple-test'
+#         if normalize:
+#             scaler.fit(X_test)
+#             Y = scaler.transform(X_test)
+#
+#         entity = Entity(Y=Y, name='apple', verbose=verbose)
+#         entities.append(entity)
+#     apple = Dataset(entities=entities, name=name, verbose=verbose)
+#
+#     return apple
 
 
 def load_msl(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
