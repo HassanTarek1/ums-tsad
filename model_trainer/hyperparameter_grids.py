@@ -262,6 +262,25 @@ ALAD_PARAM_GRID = {
 
 
 #######################################
+# PYOD model hyper-parameter grid
+#######################################
+
+
+PYOD_TRAIN_PARAM_GRID = {
+    'output_dir': [r'/output'],
+    'overwrite_output_dir': [True],
+    'seed': [1],
+    'eval_batch_size': [128],
+}
+
+PYOD_PARAM_GRID = {
+    'window_size': [64],
+    'window_step': [64],
+    'contamination':[0.1,0.15,0.2,0.25],
+    'device': [None]
+}
+
+#######################################
 # CBLOF model hyper-parameter grid
 #######################################
 

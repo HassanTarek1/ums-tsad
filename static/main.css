@@ -1,14 +1,180 @@
-table {
-  border-collapse: separate;
-  border-spacing: 50px 0;
-}
+/*table {*/
+/*  border-collapse: separate;*/
+/*  border-spacing: 50px 0;*/
+/*}*/
 
-td {
-  padding: 10px 0;
-  background: #ccc; /* Remove this line to disable grey background color */
+/*td {*/
+/*  padding: 10px 0;*/
+/*  background: #ccc; !* Remove this line to disable grey background color *!*/
+/*}*/
+
+/*.wrapper {*/
+/*  display: flex;*/
+/*}*/
+/*.add-model-form {*/
+/*  margin-top: 20px;*/
+/*  text-align: center;*/
+/*}*/
+
+/*.add-model-form form {*/
+/*  display: inline-block;*/
+/*  margin: auto;*/
+/*}*/
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
 }
 
 .wrapper {
-  display: flex;
+    max-width: 960px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
 }
 
+.add-model-form,
+.box0,
+.box1,
+.box2,
+.fieldset {
+    margin-bottom: 20px;
+}
+
+.add-model-form label,
+.box0 label,
+.box1 label,
+.box2 label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.add-model-form input[type="text"],
+.form-control {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+input[type="submit"],
+button {
+    background-color: #5cb85c;
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    margin: 5px 0;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+input[type="submit"]:hover,
+button:hover {
+    background-color: #4cae4c;
+}
+
+fieldset {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 3px;
+}
+
+legend {
+    padding: 0 5px;
+    font-weight: bold;
+    color: #5cb85c;
+}
+
+/* Style for delete buttons next to each algorithm */
+.delete-btn {
+    padding: 3px 8px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.delete-btn:hover {
+    background-color: #c9302c;
+}
+
+/* Responsive Table Styles */
+#data {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#data th,
+#data td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+#data th {
+    background-color: #f2f2f2;
+    color: #333;
+}
+
+/* Responsive Web Design */
+@media screen and (max-width: 768px) {
+    .wrapper {
+        width: auto;
+        padding: 10px;
+    }
+
+    .add-model-form input[type="text"],
+    .form-control {
+        width: calc(100% - 20px); /* Adjust for padding and border */
+    }
+
+    .checkbox-list
+    /*.delete-btn {*/
+    /*    display: block;*/
+    /*    margin-top: 5px;*/
+    /*}*/
+}
+.modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }

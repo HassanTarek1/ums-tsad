@@ -25,6 +25,7 @@
             })
         });
     });
+
     </script>
 
 
@@ -37,7 +38,16 @@
 
 <body>
 
+
+
 <div class="wrapper">
+<div class="add-model-form">
+  <form id="add-model-form" action="/mmodel/add-model" method="post">
+    <label for="newModelName">New Model Name:</label>
+    <input type="text" id="newModelName" name="newModelName" required>
+    <input type="submit" value="Add Model">
+  </form>
+</div>
 <div class="box0">
 <fieldset>
     <legend>Flash The Page:</legend>
@@ -45,8 +55,8 @@
 
 </fieldset>
 </div>
-<form action="/mmodel/train" method="POST">
 
+<form id="train-form" action="/mmodel/train" method="POST">
 
 
 <div class="box1">
@@ -64,8 +74,6 @@
       </fieldset>
 </div>
 
-
-
 <div class="box2">
     <fieldset>
           <legend>Choose Data Entity:</legend>
@@ -75,20 +83,20 @@
         </fieldset>
 </div>
 
-
-
     <fieldset>
     <legend>Choose Algorithms:</legend>
     {% for algorithm in algorithm_list %}
-    <div>
-      <input name="algorithm_option" value="{{ algorithm }}" type="checkbox">
-      <label >{{ algorithm }}</label>
-    </div>
+        <div class="algorithm-item">
+            <input name="algorithm_option" value="{{ algorithm }}" type="checkbox" id="alg-{{ algorithm }}">
+            <label for="alg-{{ algorithm }}">{{ algorithm }}</label>
+<!--            <form action="/mmodel/delete-algorithm" method="post" style="display: inline;">-->
+<!--                <input type="hidden" name="algorithm_name" value="{{ algorithm }}">-->
+<!--                <button type="submit" class="delete-btn">Delete</button>-->
+<!--            </form>-->
+        </div>
 
     {% endfor %}
     </fieldset>
-
-
 
 
 <input type="submit" value="train" >
@@ -131,5 +139,97 @@
   </table>
 
 {% endif %}
+<!-- The Modal -->
+<div id="myModal" class="modal">
+    <!-- Modal content -->
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <p id="modal-text">Some text in the Modal..</p>
+    </div>
+</div>
+
+<script>
+    // Get the modal
+    var modal = document.getElementById('myModal');
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function showModal(message, url) {
+        var modalText = document.getElementById('modal-text');
+        // If you have a URL, add an anchor tag to the message
+        if(url) {
+            modalText.innerHTML = message + ' <a href="' + url + '">Click here</a>';
+        } else {
+            modalText.textContent = message;
+        }
+        modal.style.display = "block";
+    }
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('add-model-form');
+
+    var closeBtn = document.querySelector('.modal .close');
+
+    // Function to reload the page
+    function reloadPage() {
+        window.location.reload();
+    }
+    closeBtn.onclick = function() {
+        // Hide the modal
+        modal.style.display = "none";
+        // Reload the page
+        reloadPage();
+    };
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+            reloadPage();
+        }
+    };
+    form.onsubmit = function(e) {
+        e.preventDefault();  // Prevent the default form submission
+        var modelName = document.getElementById('newModelName').value;
+
+        fetch('/mmodel/add-model', {
+            method: 'POST',
+            body: JSON.stringify({ newModelName: modelName }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}' // Include the CSRF token if needed
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Server responded with a status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            showModal(data.message, 'https://pyod.readthedocs.io/en/latest/index.html'); // Show the message from the server
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred: ' + error.message);
+        });
+    };
+});
+</script>
 </body>
 </html>
