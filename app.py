@@ -38,7 +38,7 @@ def index():
                 data_info = {'dataset_entity': data_entity_info[0], 'algorithms': data_entity_info[1],
                              'dataset_type': data_entity_info[2],'inject_abn_types':data_entity_info[3],'best_model':data_entity_info[4]}
                 data_infos.append(data_info)
-        return render_template(template_name_or_list='index.html',dataset_types = dataset_types,algorithm_list = algorithm_list,table_flag = table_flag,data_infos = data_infos)
+        return render_template(template_name_or_list='index.html',data_dir=data_dir, dataset_types = dataset_types,algorithm_list = algorithm_list,table_flag = table_flag,data_infos = data_infos)
 
     if request.method == 'POST':
         return

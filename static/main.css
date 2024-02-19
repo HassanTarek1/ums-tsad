@@ -26,6 +26,38 @@ body {
     color: #333;
     line-height: 1.6;
 }
+/* Style for the container of the variable display */
+#variable-display-container {
+    margin: 20px;
+    text-align: left;
+    /* Add any additional styling you wish for the container */
+}
+/* Style for the label of the variable display, to match other labels */
+#variable-display-container label {
+display: block;
+margin-bottom: 5px;
+font-weight: bold;
+/* Add any other label styles that are used in the form */
+}
+
+/* Style for the readonly textbox displaying the variable */
+#variableDisplay {
+    width: calc(100% - 22px); /* Same as other input fields, accounting for border */
+    padding: 10px; /* Same padding as other inputs */
+    margin-bottom: 10px; /* Consistent with the other form elements */
+    border: 1px solid #ccc; /* Same border as other inputs */
+    border-radius: 3px; /* Same border-radius as other inputs */
+    background-color: #fff; /* Matching the background color of other inputs */
+    font-family: 'Arial', sans-serif; /* Same font as body */
+    color: #333; /* Same text color as other inputs */
+    line-height: 1.6; /* Same line height as body for consistency */
+}
+
+/* Ensuring the textbox is not editable */
+#variableDisplay[readonly] {
+    background-color: #fff;
+    cursor: not-allowed; /* Cursor to indicate it's not editable */
+}
 
 .wrapper {
     max-width: 960px;
