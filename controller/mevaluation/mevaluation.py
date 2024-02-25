@@ -10,7 +10,7 @@ from utils.utils import get_args_from_cmdline,img2binary
 from dao.mdata.mdata import update_data_inject_abn_types_by_name,select_inject_abn_types_by_data_entity,select_data_status_by_entity,update_data_best_model_by_name
 args = get_args_from_cmdline()
 
-from model_selection.rank_aggregation import trimmed_borda, trimmed_partial_borda, borda, kemeny, partial_borda, influence, averagedistance
+from model_selection.rank_aggregation import trimmed_borda, trimmed_partial_borda, borda, kemeny, partial_borda, influence, averagedistance, average_rank_aggregator, enhanced_markov_chain_rank_aggregator, copeland_rank_aggregator, spearmans_footrule_aggregator
 from utils.model_selection_utils import rank_models
 
 
@@ -302,24 +302,114 @@ def search_evaluate_result():
             df_model_rank_f1_html = df_model_rank_f1.to_html()
 
             result_html += ''' <fieldset>
-                        <legend>Models Rank Matrix</legend>'''
+                        <legend>Models Rank Matrix (f1) </legend>'''
             result_html += df_model_rank_f1_html
             result_html += '''</fieldset>'''
 
+
+            # test ###################################################
+            logger.info(f'ranks_by_metrics is {ranks_by_metrics}')
+            avg_objective, avg_aggregated_rank = average_rank_aggregator(ranks_by_metrics)
+            logger.info(f'avg_rank is {avg_aggregated_rank}')
+            avg_rank_df = pd.DataFrame(avg_aggregated_rank,index=model_names,columns=rank_column_name_list)
+            average = avg_rank_df.to_html()
+            result_html += ''' <fieldset>
+                        <legend>average rank values </legend>'''
+            result_html += average
+            result_html += '''</fieldset>'''
+            logger.info(f'f1 shape is {f1}')
+
+            # end ###################################################
+            #                            *                          #
+            #                           * *                         #
+            #                          * * *                        #
+            #                           * *                         #
+            #                            *                          #
+            # start again ###########################################
+
+            rank_arrays = [ranks_by_metrics]
+            for rank_array in [rank_prauc, rank_f1, rank_vus]:
+                if rank_array.ndim == 1:
+                    rank_array = rank_array.reshape(1, -1)
+                rank_arrays.append(rank_array)
+
+            f1_scores = models_performance_matrix.iloc[:, 1].to_numpy()
+            logger.info(f'f1_ranks before markov is {f1_scores}')
+            logger.info(f'rank_arrays for markov is {rank_arrays}')
+            # Convert F1 scores to ranks - the highest score gets rank 1 and so on
+            f1_ranks = f1_scores.argsort()[::-1].argsort()
+            logger.info(f'f1_ranks for markov is {f1_ranks}')
+            logger.info(f'ranks_by_metrics for markov is {ranks_by_metrics}')
+            logger.info(f'rank_prauc for markov is {rank_prauc}')
+            logger.info(f'rank_vus for markov is {rank_vus}')
+
+            # Step 2: Call the enhanced Markov Chain method
+            objective, markov_aggregated_rank = enhanced_markov_chain_rank_aggregator(*rank_arrays)
+            logger.info(f'try this {f1[markov_aggregated_rank.astype(int)-1]}')
+            markov_aggregated_rank_df = pd.DataFrame(f1[markov_aggregated_rank.astype(int)-1],index=model_names,columns=rank_column_name_list)
+            markov_aggregated_rank_html = markov_aggregated_rank_df.to_html()
+            result_html += ''' <fieldset>
+                        <legend>markov_aggregated_rank </legend>'''
+            result_html +=markov_aggregated_rank_html
+            result_html += '''</fieldset>'''
+
+
+
+            # end ###################################################
+            #                            *                          #
+            #                           * *                         #
+            #                          * * *                        #
+            #                           * *                         #
+            #                            *                          #
+            # start again ###########################################
+            # copeland_rank_aggregator
+
+            objective, copeland_rank = copeland_rank_aggregator(*rank_arrays)
+            logger.info(f'try this {f1[copeland_rank.astype(int)-1]}')
+            copeland_rank_df = pd.DataFrame(f1[copeland_rank.astype(int)-1],index=model_names,columns=rank_column_name_list)
+            copeland_rank_html = copeland_rank_df.to_html()
+            result_html += ''' <fieldset>
+                        <legend>copeland_rank </legend>'''
+            result_html +=copeland_rank_html
+            result_html += '''</fieldset>'''
+
+
+
+            # end ###################################################
+            #                            *                          #
+            #                           * *                         #
+            #                          * * *                        #
+            #                           * *                         #
+            #                            *                          #
+            # start again ###########################################
+            # spearmans_footrule_aggregator
+
+
+
+            objective, spearmans_footrule = spearmans_footrule_aggregator(*rank_arrays)
+            logger.info(f'try this {f1[spearmans_footrule.astype(int) - 1]}')
+            spearmans_footrule_df = pd.DataFrame(f1[spearmans_footrule.astype(int) - 1], index=model_names,
+                                            columns=rank_column_name_list)
+            spearmans_footrule_html = spearmans_footrule_df.to_html()
+            result_html += ''' <fieldset>
+                        <legend>spearmans_footrule </legend>'''
+            result_html += spearmans_footrule_html
+            result_html += '''</fieldset>'''
+
+            # end ###################################################
             # Borda ranks
             borda_rank = f1[borda(ranks)[1].astype(int)]
             logger.info(f'borda_rank is {borda_rank}')
-
             df_borda_rank = pd.DataFrame(borda_rank,index=model_names,columns=rank_column_name_list)
             df_borda_rank_html = df_borda_rank.to_html()
 
             result_html += ''' <fieldset>
-                                <legend>Models Borda Rank F1 Matrix</legend>'''
+                                <legend>Models Borda Rank from F1 Matrix</legend>'''
             result_html += df_borda_rank_html
             result_html += '''</fieldset>'''
 
             # Trimmed Borda ranks
-            trimmed_borda_rank = f1[trimmed_borda(ranks=ranks, aggregation_type='borda', metric='influence')[1].astype(int)]
+            trimmed_borda_rank = f1[trimmed_borda(ranks=ranks, aggregation_type='borda', metric='pagerank')[1].astype(int)]
 
             logger.info(f'trimmed_borda_rank is {trimmed_borda_rank}')
 
@@ -345,7 +435,7 @@ def search_evaluate_result():
             result_html += df_partial_borda_rank_html
             result_html += '''</fieldset>'''
 
-            # Trimmed Borda ranks
+            # Trimmed partial Borda ranks
             trimmed_partial_borda_rank = f1[trimmed_partial_borda(ranks, top_k=5, metric='influence', aggregation_type='borda')[1].astype(int)]
             logger.info(f'trimmed_partial_borda_rank is {trimmed_partial_borda_rank}')
 
@@ -375,7 +465,7 @@ def search_evaluate_result():
 
 
 
-            # Clustering
+            # Clustering EMPIRICAL INFLUENCE AND ROBUST RANK AGGREGATION
             from sklearn.cluster import AgglomerativeClustering
 
             clustering = AgglomerativeClustering(n_clusters=2, linkage='single').fit_predict(reliability.reshape((-1, 1)))
@@ -387,7 +477,9 @@ def search_evaluate_result():
             clustering_df_html = clustering_df.to_html()
 
 
-            result_html += ''' <fieldset>'''
+            result_html += ''' <fieldset>
+            <legend>EMPIRICAL INFLUENCE AND ROBUST RANK AGGREGATION</legend>
+            '''
             result_html += clustering_df_html
             result_html += '''</fieldset>'''
 
@@ -421,7 +513,7 @@ def search_evaluate_result():
             logger.info('==== Statistics ====')
             logger.info(f'Rank by PR-AUC: {rank_prauc}')
             logger.info(f'Rank by F1: {rank_f1}')
-            logger.info(f'Predicted rank: {trimmed_kemeny_rank}')
+            logger.info(f'Predicted rank(trimmed_kemeny_rank): {trimmed_kemeny_rank}')
             logger.info(f'Max PR-AUC: {np.max(praucs)} is achieved by {model_names[np.argmax(praucs)]}')
             logger.info(f'Max F-1: {np.max(f1s)} is achieved by {model_names[np.argmax(f1s)]}')
             logger.info(
@@ -440,13 +532,13 @@ def search_evaluate_result():
             result_html += '''<p>Rank by F1 : {}<p/>'''.format(rank_f1_model_name_list)
 
             trimmed_kemeny_rank_model_name_list = [model_names[int(i)] for i in trimmed_kemeny_rank]
-            result_html += '''<p>Predicted rank : {}<p/>'''.format(trimmed_kemeny_rank_model_name_list)
+            result_html += '''<p>Kemeny Predicted rank : {}<p/>'''.format(trimmed_kemeny_rank_model_name_list)
 
             result_html += '''<p>Max PR-AUC: {} is achieved by {}<p/>'''.format(np.max(praucs),model_names[np.argmax(praucs)])
             result_html += '''<p>Max F-1: {} is achieved by {}<p/>'''.format(np.max(f1s),model_names[np.argmax(f1s)])
             best_model = model_names[trimmed_kemeny_rank[0]]
-            result_html += '''<p>Our chosen model is : {} which has PR-AUC= {} and best F-1= {}<p/>'''.format(best_model,praucs[trimmed_kemeny_rank[0]],f1s[trimmed_kemeny_rank[0]])
-            result_html += '''<p>NDCG of predicted ranks with PR-AUC= {} and best F-1= {}<p/>'''.format(ndcg_score(praucs.reshape((1, -1)), trimmed_kemeny_rank.reshape((1, -1))),ndcg_score(f1s.reshape((1, -1)), trimmed_kemeny_rank.reshape((1, -1))))
+            result_html += '''<p>Our chosen model is : {} which has PR-AUC (using Kemeny)= {} and best F-1= {}<p/>'''.format(best_model,praucs[trimmed_kemeny_rank[0]],f1s[trimmed_kemeny_rank[0]])
+            result_html += '''<p>(Normalized Discounted Cumulative Gain) NDCG of predicted ranks with PR-AUC= {} and best F-1= {}<p/>'''.format(ndcg_score(praucs.reshape((1, -1)), trimmed_kemeny_rank.reshape((1, -1))),ndcg_score(f1s.reshape((1, -1)), trimmed_kemeny_rank.reshape((1, -1))))
 
 
 

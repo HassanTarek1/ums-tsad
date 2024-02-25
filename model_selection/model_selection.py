@@ -155,11 +155,13 @@ class RankModels(object):
             n_splits=n_splits)
 
         self.models_performance_matrix = pd.concat([
-            self.models_evaluation_metrics, self.models_forecasting_metrics,
-            self.models_centrality, self.models_synthetic_anomlies
+            self.models_forecasting_metrics, self.models_evaluation_metrics,self.models_centrality, self.models_synthetic_anomlies
         ],
                                                    axis=1)
-
+        # self.models_forecasting_metrics,
+        #             self.models_centrality,
+        # self.models_evaluation_metrics,
+        # ,self.models_synthetic_anomlies
         return self.models_performance_matrix
 
     def rank_models(self) -> Tuple[np.ndarray, np.ndarray]:

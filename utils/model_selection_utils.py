@@ -390,10 +390,9 @@ def rank_models(
         models_performance_matrix: pd.DataFrame
 ) -> Tuple[np.ndarray, np.ndarray]:
     # If the value is lower for a model, the model is better
-
-    LOWER_BETTER = ['MAE', 'MSE', 'SMAPE', 'MAPE', 'CENTRALITY']
+    LOWER_BETTER = ['MAE', 'MSE', 'SMAPE', 'MAPE', 'CENTRALITY', 'best_spd_delay', 'CDI']
     # If the value is higher for a model, the model is better
-    HIGHER_BETTER = ['LIKELIHOOD', 'SYNTHETIC', 'PR-AUC', 'Best F-1', 'VUS']
+    HIGHER_BETTER = ['LIKELIHOOD', 'SYNTHETIC', 'PR-AUC', 'Best F-1', 'VUS', 'MutualInformation']
 
     METRIC_NAMES = [i.split('_')[0] for i in models_performance_matrix.columns]
     SORT_DIRECTION = []
@@ -403,6 +402,7 @@ def rank_models(
         elif mn in LOWER_BETTER:
             SORT_DIRECTION.append('Asc')
         else:
+            print(f'Name {mn}')
             raise ValueError('Undefined metric sort direction.')
 
     ranks = np.zeros(models_performance_matrix.shape).T
@@ -426,8 +426,9 @@ def rank_models(
     rank_prauc = ranks[0, :]  # Rank based on PR-AUC
     rank_f1 = ranks[1, :]  # Rank based on F-1
     rank_vus = ranks[2, :]  # Rank based on VUS
-    ranks_by_metrics = ranks[3:, ]  # Ranks 
-
+    ranks_by_metrics = ranks[3:, ]  # Ranks
+    print("HELLO WORLD")
+    print(ranks.shape)
     return ranks_by_metrics, rank_prauc, rank_f1, rank_vus
 
 

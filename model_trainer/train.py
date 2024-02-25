@@ -71,7 +71,7 @@ class TrainModels(object):
                  training_size:float=1,
                  overwrite:bool = False,
                  verbose:bool = True,
-                 save_dir:str='../trained_models'):
+                 save_dir:str='D:/Master/WS 2023/RP/My work/codes/ums-tsad/ums-tsad/zfsauton/zfsauton/project/public/Mononito/trained_models'):
 
         if training_size > 1.0:
             raise ValueError('Training size must be <= 1.0')

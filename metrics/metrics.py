@@ -12,10 +12,11 @@ import numpy as np
 from typing import Optional, List, Union
 from sklearn.metrics import ndcg_score, average_precision_score
 from scipy.stats import kendalltau, norm
-
+import random
 from utils.vus_utils import metricor
 from vus.robustness_eval import generate_curve
-
+np.random.seed(42)
+random.seed(42)
 def f1_score(predict, actual):
     TP = np.sum(predict * actual)
     TN = np.sum((1 - predict) * (1 - actual))
@@ -139,7 +140,7 @@ def normalize_scores(scores, interval_size):
         scores_normalized.append(score_normalized)
     return scores_normalized
 
-def adjusted_precision_recall_f1_auc(y_true:np.ndarray, y_scores:np.ndarray, n_splits=1000):
+def adjusted_precision_recall_f1_auc(y_true:np.ndarray, y_scores:np.ndarray, n_splits=750):
     """Function to compute adjusted precision, recall, PR-AUC (average precision) and predictions.
     """
     from sklearn.metrics import auc
@@ -163,6 +164,55 @@ def adjusted_precision_recall_f1_auc(y_true:np.ndarray, y_scores:np.ndarray, n_s
 
     return adjusted_precision, adjusted_recall, best_adjusted_f1, adjusted_prauc, adjusted_y_pred
 
+
+def range_based_precision_recall_f1_auc(y_true: np.ndarray, y_scores: np.ndarray, n_splits=1000, window_size=1000):
+    from sklearn.metrics import auc
+    import numpy as np
+    """Function to compute range-based precision, recall, range-based F1, PR-AUC, and predictions."""
+    thresholds = np.linspace(y_scores.min(), y_scores.max(), n_splits)
+    range_precision = np.zeros(thresholds.shape)
+    range_recall = np.zeros(thresholds.shape)
+    range_f1 = np.zeros(thresholds.shape)
+    print(f'= y size is: {y_scores.size}')
+    for i, threshold in enumerate(thresholds):
+
+        y_pred = y_scores >= threshold
+        y_pred = adjust_predicts(score=y_scores, label=(y_true > 0), threshold=None, pred=y_pred, calc_latency=False)
+        # print(f'y_pred {y_pred}')
+        # Calculating range-based precision, recall, and F1
+        for idx in range(len(y_pred)):
+            start_idx = max(0, idx - window_size)
+            end_idx = min(len(y_pred), idx + window_size + 1)
+
+            TP = np.sum((y_pred[start_idx:end_idx] == 1) & (y_true[start_idx:end_idx] == 1))
+            FP = np.sum((y_pred[start_idx:end_idx] == 1) & (y_true[start_idx:end_idx] == 0))
+            FN = np.sum((y_pred[start_idx:end_idx] == 0) & (y_true[start_idx:end_idx] == 1))
+
+            precision = TP / (TP + FP + 0.00001)
+            recall = TP / (TP + FN + 0.00001)
+            f1 = 2 * precision * recall / (precision + recall + 0.00001)
+
+            range_precision[i] += precision
+            range_recall[i] += recall
+            range_f1[i] += f1
+
+        range_precision[i] /= len(y_pred)
+        range_recall[i] /= len(y_pred)
+        range_f1[i] /= len(y_pred)
+
+    best_range_f1 = np.max(range_f1)
+    best_threshold = thresholds[np.argmax(range_f1)]
+    range_prauc = auc(range_recall, range_precision)
+
+    # Adjusting final predictions
+    adjusted_y_pred = y_scores >= best_threshold
+    adjusted_y_pred = adjust_predicts(score=y_scores, label=(y_true > 0), threshold=None, pred=adjusted_y_pred,
+                                      calc_latency=False)
+
+    return range_precision, range_recall, best_range_f1, range_prauc, adjusted_y_pred
+
+
+
 def get_range_vus_roc(score, labels, slidingWindow):
     grader = metricor()
     R_AUC_ROC, R_AUC_PR, _, _, _ = grader.RangeAUC(labels=labels, score=score, window=slidingWindow, plot_ROC=True)
@@ -170,7 +220,7 @@ def get_range_vus_roc(score, labels, slidingWindow):
     metrics = {'R_AUC_ROC': R_AUC_ROC, 'R_AUC_PR': R_AUC_PR, 'VUS_ROC': VUS_ROC, 'VUS_PR': VUS_PR}
 
     return metrics
-
+# For centrality
 def kendalltau_topk(a: np.array, b: np.array, k: int = 60):
     """Kendall's Tau correlation between the top-k elements according to a
     """
@@ -269,7 +319,7 @@ def evaluate_model_selection(prauc: np.ndarray,
 
 
 ######################################################
-# Metrics to perform model selection
+# Metrics to perform model selection - Prediction Errors surrogate metric
 ######################################################
 
 
@@ -407,6 +457,12 @@ def smape(Y: np.ndarray,
         # return 2 * (np.sum((mask.numpy() *(np.abs(Y - Y_hat).numpy()) / (np.abs(Y).numpy() + np.abs(Y_hat).numpy()))))/ np.sum(mask.numpy())
 
 
+#############################################
+# Synthetic anomaly injection
+#############################################
+
+
+# PR_AUC Precision-Recall Area Under Curve
 def prauc(Y: np.ndarray,
           Y_scores: np.ndarray,
           segment_adjust: bool = True,
@@ -430,8 +486,110 @@ def prauc(Y: np.ndarray,
     if not segment_adjust:
         PR_AUC = average_precision_score(y_true=Y, probas_pred=Y_scores)
     else:
+        # PR_AUC = range_based_precision_recall_f1_auc(Y,
+        #                                           Y_scores,
+        #                                           n_splits=n_splits)[3]
         PR_AUC = adjusted_precision_recall_f1_auc(Y,
-                                                  Y_scores,
-                                                  n_splits=n_splits)[3]
+                                                 Y_scores,
+                                                 n_splits=n_splits)[3]
 
     return PR_AUC
+
+
+
+###############################
+# Test Sequence Precision Delay
+###############################
+
+
+def sequence_precision_delay(y_true, y_scores, n_splits=1000, max_delay=5):
+    """
+    Calculate Sequence Precision Delay for scored outputs over multiple thresholds.
+    """
+    from sklearn.metrics import auc
+
+    thresholds = np.linspace(y_scores.min(), y_scores.max(), n_splits)
+    spd_precision = np.zeros(thresholds.shape)
+    spd_delay = np.zeros(thresholds.shape)
+
+    for i, threshold in enumerate(thresholds):
+        y_pred = y_scores >= threshold
+        y_pred = adjust_predicts(score=y_scores, label=(y_true > 0), threshold=None, pred=y_pred, calc_latency=False)
+
+        delay_sum = 0
+        true_positives = 0
+
+        for idx in range(len(y_pred)):
+            if y_true[idx] == 1:
+                for j in range(idx, min(idx + max_delay, len(y_pred))):
+                    if y_pred[j] == 1:
+                        true_positives += 1
+                        delay_sum += j - idx
+                        break
+
+        spd_precision[i] = true_positives / np.sum(y_true) if np.sum(y_true) > 0 else 0
+        spd_delay[i] = delay_sum / true_positives if true_positives > 0 else 0
+
+    # Calculating the best SPD precision and average delay
+    best_spd_precision = np.max(spd_precision)
+    best_spd_delay = np.mean(spd_delay)
+
+    return best_spd_precision, best_spd_delay
+
+
+#######################################
+# Mutual information
+#######################################
+from sklearn.metrics import mutual_info_score
+def calculate_mutual_information(Y: np.ndarray, Y_scores: np.ndarray, normalize: bool = False) -> float:
+    """
+    Calculate the Mutual Information between the true labels and predicted scores.
+
+    Parameters:
+    Y (np.ndarray): True labels.
+    Y_scores (np.ndarray): Predicted scores or features.
+    normalize (bool): If True, normalize the Mutual Information between 0 and 1.
+
+    Returns:
+    float: Mutual Information score.
+    """
+    mi = mutual_info_score(Y, Y_scores)
+    if normalize:
+        # Normalize the MI score to lie between 0 and 1
+        max_mi = min(np.log(np.unique(Y).size), np.log(np.unique(Y_scores).size))
+        mi /= max_mi
+    return mi
+
+########################################
+# Composite Difficulty Index (CDI)
+########################################
+def calculate_cdi(RC, NC, NA, weights=None):
+    """
+    Calculate the Composite Difficulty Index (CDI) based on RC, NC, and NA metrics.
+
+    Parameters:
+    RC (float): Relative Contrast score.
+    NC (float): Normalized Clusteredness of Abnormal Points score.
+    NA (float): Normalized Adjacency of Normal/Abnormal Cluster score.
+    weights (list of float): Weights for RC, NC, and NA in the CDI calculation.
+                             If None, equal weights are assumed.
+
+    Returns:
+    float: Composite Difficulty Index score.
+    """
+    if weights is None:
+        weights = [1/3, 1/3, 1/3]  # Equal weights if not provided
+
+    # Ensure the weights sum up to 1
+    total_weight = sum(weights)
+    weights = [w / total_weight for w in weights]
+
+    # CDI calculation as a weighted sum of RC, NC, and NA
+    cdi = weights[0] * RC + weights[1] * NC + weights[2] * NA
+    print("RC")
+    print(RC)
+    print("NC")
+    print(NC)
+    print("NA")
+    print(NA)
+    return cdi

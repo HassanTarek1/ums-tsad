@@ -207,6 +207,173 @@ def trimmed_kemeny(ranks: np.ndarray,
 ##########################################
 
 
+
+
+##########################################
+# Using average
+##########################################
+import numpy as np
+from typing import Tuple, Optional
+
+def average_rank_aggregator(*rankings: np.ndarray) -> Tuple[float, np.ndarray]:
+    """
+    Computes the average rank aggregation across multiple sets of rankings.
+
+    Parameters
+    ----------
+    *rankings: variable number of np.ndarray
+        Multiple arrays of rankings to be aggregated. Each array should be of shape [# permutations, # items].
+
+    Returns
+    -------
+    Tuple[float, np.ndarray]
+        A tuple containing the objective score and the aggregated rank.
+    """
+    # Concatenate all rankings
+    combined_ranks = np.vstack(rankings)
+
+    # Calculate the mean rank for each item
+    mean_ranks = combined_ranks.mean(axis=0)
+
+    # Objective score can be the standard deviation of the mean ranks
+    objective = np.std(mean_ranks)
+
+    # Rank items based on their mean rank (lower is better)
+    aggregated_rank_positions = mean_ranks.argsort().argsort() + 1
+
+    return objective, aggregated_rank_positions
+
+
+# *******************************************
+#  ==========================================
+
+
+def enhanced_markov_chain_rank_aggregator(*rankings: np.ndarray) -> Tuple[float, np.ndarray]:
+    """
+    Aggregates multiple sets of rankings using the Markov Chain method.
+
+    Parameters
+    ----------
+    *rankings: variable number of np.ndarray
+        Multiple arrays of rankings to be aggregated.
+
+    Returns
+    -------
+    Tuple[float, np.ndarray]
+        A tuple containing the objective score and the aggregated rank.
+    """
+    # Concatenate all rankings and ensure they are integers
+    combined_ranks = np.vstack(rankings).astype(int)
+
+    n, m = combined_ranks.shape
+    transition_matrix = np.zeros((m, m))
+
+    # Constructing the transition matrix
+    for rank in combined_ranks:
+        # Ensuring zero-based indexing
+        rank = rank - 1
+        for j in range(m - 1):
+            transition_matrix[rank[j], rank[j + 1]] += 1
+
+    # Normalizing the transition matrix
+    row_sums = transition_matrix.sum(axis=1)
+    transition_matrix = np.divide(transition_matrix, row_sums[:, np.newaxis], out=np.zeros_like(transition_matrix), where=row_sums[:, np.newaxis] != 0)
+
+    # Handling the case where some states are never visited
+    transition_matrix += np.diag(np.where(row_sums == 0, 1, 0))
+
+    # Finding stationary distribution
+    eigenvalues, eigenvectors = np.linalg.eig(transition_matrix.T)
+    stationary_distribution = np.abs(eigenvectors[:, np.argmax(eigenvalues)]).real
+    stationary_distribution /= stationary_distribution.sum()
+
+    # Objective can be the entropy of the stationary distribution
+    epsilon = 1e-10
+    objective = -np.sum(stationary_distribution * np.log(stationary_distribution + epsilon))
+
+    return objective, stationary_distribution.argsort() + 1  # argsort to get ranking from scores
+
+
+# *********************************************************
+# #########################################################
+
+def copeland_rank_aggregator(*rankings: np.ndarray) -> Tuple[float, np.ndarray]:
+    """
+    Aggregates multiple sets of rankings using the Copeland method.
+
+    Parameters
+    ----------
+    *rankings: variable number of np.ndarray
+        Multiple arrays of rankings to be aggregated.
+
+    Returns
+    -------
+    Tuple[float, np.ndarray]
+        A tuple containing the objective score and the aggregated rank.
+    """
+    combined_ranks = np.vstack(rankings).astype(int)
+    n, m = combined_ranks.shape
+    copeland_scores = np.zeros(m)
+
+    # Pairwise comparisons to calculate Copeland scores
+    for i in range(m):
+        for j in range(i + 1, m):
+            wins_i = np.sum(combined_ranks[:, i] < combined_ranks[:, j])
+            wins_j = np.sum(combined_ranks[:, j] < combined_ranks[:, i])
+            copeland_scores[i] += wins_i
+            copeland_scores[j] += wins_j
+
+    # Objective can be the variance of the Copeland scores
+    objective = np.var(copeland_scores)
+
+    # The final rank is based on Copeland scores, highest score gets the highest rank
+    aggregated_rank = copeland_scores.argsort()[::-1] + 1
+
+    return objective, aggregated_rank
+
+
+
+
+
+# *********************************************************
+# #########################################################
+from scipy.optimize import linear_sum_assignment
+def spearmans_footrule_aggregator(*rankings: np.ndarray) -> Tuple[float, np.ndarray]:
+    """
+    Aggregates multiple sets of rankings using Spearman's Footrule method.
+
+    Parameters
+    ----------
+    *rankings: variable number of np.ndarray
+        Multiple arrays of rankings to be aggregated.
+
+    Returns
+    -------
+    Tuple[float, np.ndarray]
+        A tuple containing the objective score and the aggregated rank.
+    """
+    combined_ranks = np.vstack(rankings).astype(int)
+    n, m = combined_ranks.shape
+
+    # Create a cost matrix for all pairwise footrule distances
+    cost_matrix = np.zeros((m, m))
+
+    for i in range(m):
+        for j in range(m):
+            cost_matrix[i, j] = np.sum(np.abs(combined_ranks[:, i] - j))
+
+    # Solve the assignment problem (minimum weight matching in bipartite graphs)
+    row_ind, col_ind = linear_sum_assignment(cost_matrix)
+
+    # The final rank is determined by the assignment solution
+    aggregated_rank = col_ind + 1
+
+    # Objective can be the sum of distances in the optimal assignment
+    objective = cost_matrix[row_ind, col_ind].sum()
+
+    return objective, aggregated_rank
+
+##########################################
 def partial_borda(ranks: np.ndarray,
                   weights: Optional[np.ndarray] = None,
                   top_k: int = 5) -> Tuple[float, np.ndarray]:

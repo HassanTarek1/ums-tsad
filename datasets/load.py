@@ -250,7 +250,7 @@ def download_anomaly_archive(root_dir='./data'):
     shutil.move(src=f'{root_dir}/UCR_Anomaly_FullData', 
                 dst=f'{root_dir}/AnomalyArchive') 
 
-def load_anomaly_archive(group, datasets=None, downsampling=None, min_length=None, root_dir='./data', normalize=True, verbose=True):
+def load_anomaly_archive(group, datasets=None, downsampling=None, min_length=None, root_dir='D:/Master/WS 2023/RPMy work/codes/ums-tsad/ums-tsad/zfsauton/zfsauton/project/public/Mononito/datasets/', normalize=True, verbose=True):
     if not os.path.exists(f'{root_dir}/AnomalyArchive/'): download_anomaly_archive(root_dir=root_dir)
     print(f'------------------------AnomalyArchive exist-----------------------------')
     ANOMALY_ARCHIVE_ENTITIES = ['_'.join(e.split('_')[:4]) for e in os.listdir(os.path.join(root_dir, 'AnomalyArchive'))]
