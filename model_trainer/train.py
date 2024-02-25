@@ -185,7 +185,7 @@ class TrainModels(object):
                 self.train_sos()
             elif ('ALAD' == model_name) & (model_name not in exist_model_list):
                 self.train_alad()
-            else:
+            elif (model_name not in exist_model_list):
                 self.train_pyod(model_name)
 
 
