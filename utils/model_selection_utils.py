@@ -64,10 +64,12 @@ def predict(batch: dict, model_name: str,
         return _predict_cblof(batch, model)
     elif model_type == 'COF':
         return _predict_cof(batch, model)
+    elif model_type == 'SOS':
+        return _predict_sos(batch, model)
+    elif model_type == 'ALAD':
+        return _predict_alad(batch, model)
     else:
-        raise AttributeError(
-            f'Model type must be one of {_VALID_MODEL_NAMES}, but {model_type} was passed!'
-        )
+        return  _predict_pyod(batch, model)
 
 
 ######################################################
@@ -436,7 +438,7 @@ def get_eval_batchsizes(model_name: str) -> int:
     """Return evaluation batch sizes of algorithm
     """
     _VALID_MODEL_NAMES = ['RNN', 'DGHL', 'LSTMVAE', 'MD', 'RM',
-                          'NN', 'LOF','ABOD','KDE','COF','CBLOF']  # TODO: Should be stored somewhere centrally
+                          'NN', 'LOF','ABOD','KDE','COF','CBLOF','SOS']  # TODO: Should be stored somewhere centrally
 
     model_type = model_name.split('_')[0]
 
@@ -462,10 +464,12 @@ def get_eval_batchsizes(model_name: str) -> int:
         return CBLOF_TRAIN_PARAM_GRID['eval_batch_size'][0]
     elif model_type == 'COF':
         return COF_TRAIN_PARAM_GRID['eval_batch_size'][0]
+    elif model_type == 'SOS':
+        return SOS_TRAIN_PARAM_GRID['eval_batch_size'][0]
+    elif model_type == 'ALAD':
+        return ALAD_TRAIN_PARAM_GRID['eval_batch_size'][0]
     else:
-        raise AttributeError(
-            f'Model type must be one of {_VALID_MODEL_NAMES}, but {model_type} was passed!'
-        )
+        return PYOD_TRAIN_PARAM_GRID['eval_batch_size'][0]
 
 
 def _adjust_scores_with_padding(scores: np.ndarray,
@@ -521,7 +525,14 @@ def _predict_kde(batch, model):
 def _predict_abod(batch, model):
     return _predict_base(batch, model)
 
+def _predict_sos(batch, model):
+    return _predict_base(batch, model)
 
+def _predict_alad(batch, model):
+    return _predict_base(batch, model)
+
+def _predict_pyod(batch, model):
+    return _predict_base(batch, model)
 def _predict_cof(batch, model):
     return _predict_base(batch, model)
 

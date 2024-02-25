@@ -15,6 +15,8 @@ from tqdm import tqdm
 from loguru import logger
 import numpy as np
 
+from algorithm.alad import TsadALAD
+from algorithm.pyod_model import PyodModel
 from .hyperparameter_grids import *  # DGHL_TRAIN_PARAM_GRID, DGHL_PARAM_GRID, MD_TRAIN_PARAM_GRID, MD_PARAM_GRID, RM_PARAM_GRID, RM_TRAIN_PARAM_GRID, NN_PARAM_GRID, NN_TRAIN_PARAM_GRID, LSTMVAE_TRAIN_PARAM_GRID, LSTMVAE_PARAM_GRID, RNN_TRAIN_PARAM_GRID, RNN_PARAM_GRID
 from model_trainer.training_args import TrainingArguments
 from model_trainer.trainer import Trainer
@@ -34,6 +36,7 @@ from algorithm.kde import TsadKde
 from algorithm.abod import TsadABOD
 from algorithm.cblof import TsadCblof
 from algorithm.cof import  TsadCof
+from algorithm.sos import TsadSOS
 
 class TrainModels(object):
     """Class to pre-train algorithm on a dataset/entity.
@@ -177,6 +180,15 @@ class TrainModels(object):
 
             elif ('COF' == model_name) & (model_name not in exist_model_list):
                 self.train_cof()
+
+            elif ('SOS' == model_name) & (model_name not in exist_model_list):
+                self.train_sos()
+            elif ('ALAD' == model_name) & (model_name not in exist_model_list):
+                self.train_alad()
+            else:
+                self.train_pyod(model_name)
+
+
 
 
 
@@ -1017,5 +1029,223 @@ class TrainModels(object):
                                       },
                                       obj_class=self.logging_hierarchy)
 
+    def train_sos(self, batch_size=32):
+        MODEL_ID = 0
+        model_hyper_param_configurations = list(ParameterGrid(SOS_PARAM_GRID))
+        train_hyper_param_configurations = list(
+            ParameterGrid(SOS_TRAIN_PARAM_GRID))
+        for train_hyper_params in tqdm(train_hyper_param_configurations):
+            for model_hyper_params in tqdm(model_hyper_param_configurations):
+                model = TsadSOS(**model_hyper_params)
 
+                if not self.overwrite:
+                    if self.logging_obj.check_file_exists(
+                            obj_class=self.logging_hierarchy,
+                            obj_name=f"SOS_{MODEL_ID + 1}"):
+                        print(f'Model SOS_{MODEL_ID + 1} already trained!')
+                        continue
+
+                dataloader = Loader(
+                    dataset=self.train_data,
+                    batch_size=batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0)
+                model.fit(dataloader)
+
+                img_name = f"SOS_{MODEL_ID + 1}.png"
+                img_path = os.path.join(self.img_dir, img_name)
+                logger.info(f'img_path is {img_path} ')
+
+                test_dataloader = Loader(
+                    dataset=self.test_data,
+                    batch_size=self.batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0
+                )
+
+                for batch in test_dataloader:
+                    Y, Y_hat, mask = model.forward(batch)
+
+                    Y, Y_hat, mask = Y.detach().cpu().numpy(), Y_hat.detach().cpu().numpy(), mask.detach().cpu().numpy()
+
+                batch_num = 0
+                feature_num = 0
+                fig, axes = plt.subplots(1, 1, sharey=True, figsize=(15, 4))
+                axes.plot(Y[batch_num, feature_num, :].flatten(), c='darkblue', label='Y')
+                axes.plot(Y_hat[batch_num, feature_num, :].flatten(), c='red', label='Y_hat')
+                axes.legend(fontsize=16)
+                plt.savefig(img_path, format='png')
+                plt.clf()
+                plt.close()
+
+                MODEL_ID = MODEL_ID + 1
+                # Save the model
+                self.logging_obj.save(obj=model,
+                                      obj_name=f"SOS_{MODEL_ID}",
+                                      obj_meta={
+                                          'train_hyperparameters':
+                                              train_hyper_params,
+                                          'model_hyperparameters':
+                                              model_hyper_params
+                                      },
+                                      obj_class=self.logging_hierarchy)
+
+    def train_alad(self, batch_size=32):
+        MODEL_ID = 0
+        model_hyper_param_configurations = list(ParameterGrid(ALAD_PARAM_GRID))
+        train_hyper_param_configurations = list(
+            ParameterGrid(ALAD_TRAIN_PARAM_GRID))
+        for train_hyper_params in tqdm(train_hyper_param_configurations):
+            for model_hyper_params in tqdm(model_hyper_param_configurations):
+                model = TsadALAD(**model_hyper_params)
+
+                if not self.overwrite:
+                    if self.logging_obj.check_file_exists(
+                            obj_class=self.logging_hierarchy,
+                            obj_name=f"ALAD_{MODEL_ID + 1}"):
+                        print(f'Model ALAD_{MODEL_ID + 1} already trained!')
+                        continue
+
+                dataloader = Loader(
+                    dataset=self.train_data,
+                    batch_size=batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0)
+                model.fit(dataloader)
+
+                img_name = f"ALAD_{MODEL_ID + 1}.png"
+                img_path = os.path.join(self.img_dir, img_name)
+                logger.info(f'img_path is {img_path} ')
+
+                test_dataloader = Loader(
+                    dataset=self.test_data,
+                    batch_size=self.batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0
+                )
+
+                for batch in test_dataloader:
+                    Y, Y_hat, mask = model.forward(batch)
+
+                    Y, Y_hat, mask = Y.detach().cpu().numpy(), Y_hat.detach().cpu().numpy(), mask.detach().cpu().numpy()
+
+                batch_num = 0
+                feature_num = 0
+                fig, axes = plt.subplots(1, 1, sharey=True, figsize=(15, 4))
+                axes.plot(Y[batch_num, feature_num, :].flatten(), c='darkblue', label='Y')
+                axes.plot(Y_hat[batch_num, feature_num, :].flatten(), c='red', label='Y_hat')
+                axes.legend(fontsize=16)
+                plt.savefig(img_path, format='png')
+                plt.clf()
+                plt.close()
+
+                MODEL_ID = MODEL_ID + 1
+                # Save the model
+                self.logging_obj.save(obj=model,
+                                      obj_name=f"ALAD_{MODEL_ID}",
+                                      obj_meta={
+                                          'train_hyperparameters':
+                                              train_hyper_params,
+                                          'model_hyperparameters':
+                                              model_hyper_params
+                                      },
+                                      obj_class=self.logging_hierarchy)
+
+    def train_pyod(self,model_name:str,batch_size=32):
+        MODEL_ID = 0
+        model_hyper_param_configurations = list(ParameterGrid(PYOD_PARAM_GRID))
+        train_hyper_param_configurations = list(
+            ParameterGrid(PYOD_TRAIN_PARAM_GRID))
+        upper_model_name = model_name.upper()
+        for train_hyper_params in tqdm(train_hyper_param_configurations):
+            for model_hyper_params in tqdm(model_hyper_param_configurations):
+                model = PyodModel(model_name,**model_hyper_params)
+
+                if not self.overwrite:
+                    if self.logging_obj.check_file_exists(
+                            obj_class=self.logging_hierarchy,
+                            obj_name=f"{upper_model_name}_{MODEL_ID + 1}"):
+                        print(f'Model {upper_model_name}_{MODEL_ID + 1} already trained!')
+                        continue
+
+                dataloader = Loader(
+                    dataset=self.train_data,
+                    batch_size=batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0)
+                model.fit(dataloader)
+
+                img_name = f"{upper_model_name}_{MODEL_ID + 1}.png"
+                img_path = os.path.join(self.img_dir, img_name)
+                logger.info(f'img_path is {img_path} ')
+
+                test_dataloader = Loader(
+                    dataset=self.test_data,
+                    batch_size=self.batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0
+                )
+
+                for batch in test_dataloader:
+                    Y, Y_hat, mask = model.forward(batch)
+
+                    Y, Y_hat, mask = Y.detach().cpu().numpy(), Y_hat.detach().cpu().numpy(), mask.detach().cpu().numpy()
+
+                batch_num = 0
+                feature_num = 0
+                fig, axes = plt.subplots(1, 1, sharey=True, figsize=(15, 4))
+                axes.plot(Y[batch_num, feature_num, :].flatten(), c='darkblue', label='Y')
+                axes.plot(Y_hat[batch_num, feature_num, :].flatten(), c='red', label='Y_hat')
+                axes.legend(fontsize=16)
+                plt.savefig(img_path, format='png')
+                plt.clf()
+                plt.close()
+
+                MODEL_ID = MODEL_ID + 1
+                # Save the model
+                self.logging_obj.save(obj=model,
+                                      obj_name=f"{upper_model_name}_{MODEL_ID}",
+                                      obj_meta={
+                                          'train_hyperparameters':
+                                              train_hyper_params,
+                                          'model_hyperparameters':
+                                              model_hyper_params
+                                      },
+                                      obj_class=self.logging_hierarchy)
 

@@ -1,8 +1,12 @@
-from flask import  Blueprint,request,render_template,render_template_string
+import pkgutil
+
+from flask import Blueprint, request, render_template, render_template_string, jsonify, redirect, url_for
 from loguru import logger
 import os
-
-
+import templates
+import pyod.models as pyod_models
+from dao.mmodel.mmodel import delete_algorithm_name
+from dao.mmodel.mmodel import insert_model_name
 from dao.mdata.mdata import update_data_status_by_name,update_data_algorithm_by_name,select_data_entity_by_status
 from services.mmodel.mmodel import Mmodel
 from dao.mdata.mdata import query_data_type,select_algorithms_by_data_entity
@@ -136,5 +140,34 @@ def check_train_result():
 
         return  img_html
 
+@mmodel_bp.route('/add-model', methods=['POST'])
+def add_model():
+    data = request.get_json()  # Get JSON data from the request
+    new_model_name = str(data['newModelName']).upper()
+    # Code to insert the new model name into your database
+    # For example: insert_into_database(new_model_name)
+    module_names = []
+    for _, module_name, _ in pkgutil.walk_packages(pyod_models.__path__, prefix=pyod_models.__name__ + '.'):
+        module_names.append(module_name)
 
+    pyod_model_name = f'pyod.models.{new_model_name.lower()}'
+    if pyod_model_name not in module_names:
+        # Return a response that includes a flag for showing the alert
+        return jsonify({'exists': False, 'message': 'I can only add models from pyod library for now'})
+    else:
+        # If it does, insert the new model and indicate success
+        is_success = insert_model_name(new_model_name)  # Replace with your function to insert the model
+        if is_success:
+            message = 'Model added successfully from pyod library.'
+        else:
+            message = 'Model already exists'
+        return jsonify({'exists': True, 'message': message})
+
+
+@mmodel_bp.route('/delete-algorithm', methods=['POST'])
+def delete_algorithm():
+    algorithm_name = request.form['algorithm_name']
+    delete_algorithm_name(algorithm_name)
+    # Redirect to the page with the algorithm list to show the updated list
+    return redirect(url_for('index'))
 
