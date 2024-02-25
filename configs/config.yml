@@ -5,8 +5,8 @@ overwrite: True
 
 # Model training parameters
 downsampling: 10
-trained_model_path: 'D:/Master/WS 2023/RPMy work/codes/ums-tsad/ums-tsad/zfsauton/zfsauton/project/public/Mononito/trained_models' # '/home/scratch/mgoswami/trained_models/'
-dataset_path: 'D:/Master/WS 2023/RPMy work/codes/ums-tsad/ums-tsad/zfsauton/zfsauton/project/public/Mononito/datasets/' # '/home/scratch/mgoswami/datasets/'
+trained_model_path: "D:/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/trained_models/" # '/home/scratch/mgoswami/trained_models/'
+dataset_path: "D:/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/datasets/" # '/home/scratch/mgoswami/datasets/'
 
 #docker path
 #trained_model_path: '/trained_models/'
@@ -20,15 +20,13 @@ model_architectures: 'all'
 
 # Model evaluation parametersq
 normalize: True
-results_path: 'D:/Master/WS 2023/RPMy work/codes/ums-tsad/ums-tsad/zfsauton/zfsauton/project/public/Mononito/results/' # '/home/scratch/mgoswami/results/'
+results_path: "D:/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/results/" # '/home/scratch/mgoswami/results/'
 
 #docker path
 #results_path: '/results/'
 n_repeats: 2
-n_neighbors: [4, 10, 16]
 split: 'test'
 synthetic_ranking_criterion: 'f1'
-n_splits: 100
 n_validation_splits: 5
 n_neighbors: [2, 4, 6]
 n_splits: 100
@@ -40,6 +38,3 @@ use_all_ranks: False
 top_kr: !!null
 
 abn_type_list: ['spikes', 'contextual', 'flip', 'speedup', 'noise', 'cutoff', 'scale', 'wander', 'average']
-
-
-
