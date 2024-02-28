@@ -49,5 +49,7 @@ def delete_algorithm_name(algorithm_name):
     con.commit()
     if cursor.rowcount == 0:
         print("No such algorithm found to delete.")
+        return False
     else:
         print("Algorithm deleted successfully.")
+        return True
