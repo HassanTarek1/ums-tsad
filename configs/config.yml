@@ -20,7 +20,7 @@ model_architectures: 'all'
 
 # Model evaluation parametersq
 normalize: True
-results_path: "D:/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/results/"
+results_path: "/mnt/d/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/results"
 
 #docker path
 #results_path: '/results/'

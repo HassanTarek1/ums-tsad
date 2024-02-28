@@ -20,6 +20,14 @@
 /*  display: inline-block;*/
 /*  margin: auto;*/
 /*}*/
+.clickable:hover {
+  cursor: pointer;
+  background-color: #f5f5f5; /* Light grey background on hover */
+}
+
+.collapse {
+  display: none; /* Ensure collapsible rows are hidden by default */
+}
 body {
     font-family: 'Arial', sans-serif;
     background-color: #f9f9f9;
@@ -138,22 +146,96 @@ legend {
     background-color: #c9302c;
 }
 
-/* Responsive Table Styles */
+/* Style for the data table */
 #data {
-    width: 100%;
-    border-collapse: collapse;
+  width: 90%;
+  margin: 20px auto;
+  border-collapse: collapse;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-#data th,
-#data td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+/* Style for table headers */
+#data thead th {
+  background-color: #4CAF50;
+  color: white;
+  text-align: left;
+  padding: 10px;
+  font-size: 0.95em;
 }
 
-#data th {
-    background-color: #f2f2f2;
-    color: #333;
+/* Style for table rows */
+#data tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd; /* Add a bottom border to all table cells */
+}
+
+/* Style for alternate row colors */
+#data tbody tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+#data tbody tr:hover {
+  background-color: #ddd; /* Add a hover effect to rows */
+}
+
+/* Style for the 'Operate' column's link */
+#data .operate a {
+  text-decoration: none;
+  color: #fff;
+  background-color: #f44336;
+  padding: 5px 10px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+#data .operate a:hover {
+  background-color: #d32f2f; /* Darken the delete button on hover */
+}
+
+/* Add some spacing to the table */
+#data tbody tr:last-child td {
+  border-bottom: none;
+}
+/* Style for the links to look like buttons */
+/* Style for the buttons */
+#data tbody tr td a {
+    display: inline-flex; /* Inline-flex will allow you to align items centrally */
+    justify-content: center; /* Center the text inside the button */
+    align-items: center; /* Center the text vertically */
+    text-decoration: none;
+    color: white;
+    background-color: #007bff; /* Bootstrap primary button color */
+    padding: 8px 12px;
+    margin: 4px; /* Space between buttons */
+    border: none; /* Remove border */
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    flex: 1; /* Each button will take up equal space */
+}
+#data tbody tr td a.delete-btn {
+    background-color: #d9534f; /* Red color for delete button */
+    border-color: #d9534f; /* Red border for delete button, if needed */
+}
+
+#data tbody tr td a.delete-btn:hover {
+    background-color: #c9302c; /* Darker red on hover */
+}
+
+#data tbody tr td a:hover {
+    background-color: #0056b3; /* Darken the button on hover */
+}
+/* Container for the buttons */
+.button-container {
+    display: flex; /* This will line up the child elements (buttons) in a row */
+    justify-content: space-around; /* This will put equal space around the buttons */
+    padding: 8px; /* Add some padding around the container */
+}
+/* Specific style for the delete button */
+
+
+/* Add a general font style to the table (optional) */
+#data {
+  font-family: Arial, sans-serif;
 }
 
 /* Responsive Web Design */
