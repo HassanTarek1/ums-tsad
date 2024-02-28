@@ -110,7 +110,7 @@
 
 {% if table_flag: %}
 
-  <table id="data" class="table table-striped"  style="margin-left:45px;margin-block:10px 20px;margin-inline: 5% 10%;gap:50px 500px;">
+  <table id="data" class="table table-striped" >
     <thead>
       <tr>
         <th>DataSet Entity</th>
@@ -118,25 +118,29 @@
         <th>DataSet Type</th>
         <th>Inject Abnormal Type</th>
         <th>Best Model</th>
-        <th>Prediction Error</th>
-        <th>Inject Abnormal</th>
-        <th>Evaluate Model</th>
         <th>Operate</th>
       </tr>
     </thead>
     <tbody>
       {% for data_info in data_infos %}
-        <tr>
+        <tr data-toggle="collapse" data-target="#collapseRow{{ loop.index }}" class="clickable">
             <td>{{ data_info.dataset_entity }}</td>
             <td>{{ data_info.algorithms }}</td>
-             <td>{{ data_info.dataset_type }}</td>
+            <td>{{ data_info.dataset_type }}</td>
             <td>{{ data_info.inject_abn_types }}</td>
             <td>{{ data_info.best_model }}</td>
-
-            <td><a href="/mmodel/check?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}">Link</a></td>
-            <td><a href="/mevaluation/injectAbn?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}">Link</a></td>
-            <td><a href="/mevaluation/evaluateModel?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}">Link</a></td>
-            <td><a href="/mdata/deleteDataInfo?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}">Delete</a></td>
+            <td colspan="4">Details</td> <!-- Placeholder for the clickable area -->
+        </tr>
+        <tr id="collapseRow{{ loop.index }}" class="collapse">
+            <td colspan="9"> <!-- Adjust colspan as necessary to match your table -->
+                <!-- Your links here -->
+                <div class="button-container">
+                    <a href="/mmodel/check?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}" >Prediction Error Link</a><br>
+                    <a href="/mevaluation/injectAbn?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}">Inject Abnormal Link</a><br>
+                    <a href="/mevaluation/evaluateModel?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}&algorithms={{data_info.algorithms}}" >Evaluate Model Link</a><br>
+                    <a href="/mdata/deleteDataInfo?dataset_type={{data_info.dataset_type}}&dataset_entity={{data_info.dataset_entity}}" class="delete-btn">Delete</a>
+                </div>
+            </td>
         </tr>
       {% endfor %}
     </tbody>
@@ -262,6 +266,15 @@ function deleteAlgorithm(algorithmName) {
     // Send the request with the algorithm's name
     xhr.send("algorithm_name=" + encodeURIComponent(algorithmName));
 }
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+$(document).ready(function(){
+  $(".clickable").click(function() {
+    var targetId = $(this).data("target");
+    $(targetId).toggle(); // This toggles visibility of the collapsible row
+  });
+});
 </script>
 </body>
 </html>
