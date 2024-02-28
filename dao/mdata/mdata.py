@@ -19,8 +19,27 @@ def check_new_dataset(root_dir):
 
     new_datasets = [dataset_list[i] for i in indices_not_in_list2]
     logger.info(f'new data sets are {new_datasets}')
+    update_database(dataset_types,dataset_list)
     return new_datasets
 
+
+def update_database(datasets_inDB: list, datasets_inDir: list):
+    '''
+
+    :return:
+    '''
+    difference = [i for i, item1 in enumerate(datasets_inDB) if
+                            item1.lower() not in (item2.lower() for item2 in datasets_inDir)]
+    datasets_to_remove = [datasets_inDB[i] for i in difference]
+
+    sql = f"delete from UMS_TSAD_DATA where DATA_ENTITY = '{_data_name}'"
+    con.execute(sql)
+    con.commit()
+    for entity in datasets_to_remove:
+        cursor = con.cursor()
+        sql = f"delete from UMS_TSAD_DATA where DATASET_TYPE = '{entity}'"
+        con.execute(sql)
+        con.commit()
 
 def add_new_datasets(datasets: list, root_dir):
     """
