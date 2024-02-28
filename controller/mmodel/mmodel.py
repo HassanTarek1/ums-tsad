@@ -167,7 +167,9 @@ def add_model():
 @mmodel_bp.route('/delete-algorithm', methods=['POST'])
 def delete_algorithm():
     algorithm_name = request.form['algorithm_name']
-    delete_algorithm_name(algorithm_name)
-    # Redirect to the page with the algorithm list to show the updated list
-    return redirect(url_for('index'))
+    if delete_algorithm_name(algorithm_name):
+        return jsonify({'message': 'Algorithm deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'Algorithm not found'}), 404
+
 
