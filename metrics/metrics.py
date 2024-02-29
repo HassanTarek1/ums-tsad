@@ -13,6 +13,8 @@ from typing import Optional, List, Union
 from sklearn.metrics import ndcg_score, average_precision_score
 from scipy.stats import kendalltau, norm
 import random
+
+from loguru import logger
 from utils.vus_utils import metricor
 from vus.robustness_eval import generate_curve
 np.random.seed(42)
@@ -173,7 +175,7 @@ def range_based_precision_recall_f1_auc(y_true: np.ndarray, y_scores: np.ndarray
     range_precision = np.zeros(thresholds.shape)
     range_recall = np.zeros(thresholds.shape)
     range_f1 = np.zeros(thresholds.shape)
-    print(f'= y size is: {y_scores.size}')
+    logger.info(f'= y size is: {y_scores.size}')
     for i, threshold in enumerate(thresholds):
 
         y_pred = y_scores >= threshold
@@ -586,10 +588,7 @@ def calculate_cdi(RC, NC, NA, weights=None):
 
     # CDI calculation as a weighted sum of RC, NC, and NA
     cdi = weights[0] * RC + weights[1] * NC + weights[2] * NA
-    print("RC")
-    print(RC)
-    print("NC")
-    print(NC)
-    print("NA")
-    print(NA)
+    logger.info(f'RC is {RC} \n'
+                f'NC is {NC} \n'
+                f'NA is {NA}')
     return cdi

@@ -1,6 +1,7 @@
 import pkgutil
 
-from flask import Blueprint, request, render_template, render_template_string, jsonify, redirect, url_for
+import yaml
+from flask import Blueprint, request, flash, render_template, render_template_string, jsonify, redirect, url_for
 from loguru import logger
 import os
 import templates
@@ -140,6 +141,74 @@ def check_train_result():
 
         return  img_html
 
+@mmodel_bp.route('/update-config', methods=['POST'])
+def update_config():
+    user_input_path = request.form['path']
+
+    # Validate the user input here to make sure it's a safe path
+
+    # Define the path to your config.yml file
+    if os.path.exists(user_input_path):
+        # Proceed with updating the config file
+        config_path = 'configs/config.yml'
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as file:
+                config = yaml.safe_load(file)
+
+            # Here you would update the specific configuration option
+            # For example:
+            if os.path.exists(f'{user_input_path}/trained_models'):
+                config['trained_model_path'] = f'{user_input_path}/trained_models'
+            else:
+                try:
+                    # Create the directory, including any intermediate directories
+                    os.makedirs(f'{user_input_path}/trained_models')
+                    config['trained_model_path'] = f'{user_input_path}/trained_models'
+                except Exception as e:
+                    # Handle potential exceptions, e.g., permission issues
+                    flash(f'Could not create the directory trained models: {e}', 'error')
+                    return redirect(url_for('index'))
+
+            if os.path.exists(f'{user_input_path}/datasets'):
+                config['dataset_path'] = f'{user_input_path}/datasets'
+            else:
+                try:
+                    # Create the directory, including any intermediate directories
+                    os.makedirs(f'{user_input_path}/datasets')
+                    config['dataset_path'] = f'{user_input_path}/datasets'
+                except Exception as e:
+                    # Handle potential exceptions, e.g., permission issues
+                    flash(f'Could not create the directory datasets: {e}', 'error')
+                    return redirect(url_for('index'))
+
+            if os.path.exists(f'{user_input_path}/results'):
+                config['results_path'] = f'{user_input_path}/results'
+            else:
+                try:
+                    # Create the directory, including any intermediate directories
+                    os.makedirs(f'{user_input_path}/results')
+                    config['results_path'] = f'{user_input_path}/results'
+                except Exception as e:
+                    # Handle potential exceptions, e.g., permission issues
+                    flash(f'Could not create the directory results: {e}', 'error')
+                    return redirect(url_for('index'))
+
+
+            with open(config_path, 'w') as file:
+                yaml.dump(config, file)
+
+            # Optionally, reload the config or notify the app of the change
+            # (Your logic here)
+
+            # Inform the user of success
+            flash('Configuration updated successfully.  ', 'success')
+        else:
+            # The path does not exist, inform the user
+            flash('The provided path does not exist.', 'error')
+    else:
+        flash('The provided path does not exist.', 'error')
+
+    return redirect(url_for('index'))
 @mmodel_bp.route('/add-model', methods=['POST'])
 def add_model():
     data = request.get_json()  # Get JSON data from the request

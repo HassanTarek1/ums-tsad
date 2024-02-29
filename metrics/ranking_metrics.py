@@ -14,6 +14,7 @@ from distributions.mallows_kendall import distance as kendalltau_dist
 from metrics.metrics import mse, mae, smape, mape, prauc, gaussian_likelihood, get_range_vus_roc, best_f1_linspace, \
     adjusted_precision_recall_f1_auc, sequence_precision_delay, range_based_precision_recall_f1_auc, \
     calculate_mutual_information, calculate_cdi
+from loguru import logger
 
 from utils.vus_utils import find_length
 
@@ -90,8 +91,7 @@ def rank_by_metrics(predictions: dict, n_splits=100, sliding_window=None) -> pd.
 
         scores = MinMaxScaler(feature_range=(0, 1)).fit_transform(scores.reshape(-1, 1)).ravel()
         evaluation_scores = get_range_vus_roc(scores, labels, sliding_window)
-        print(f'entity scores for model name {model_name}')
-        print(scores)
+        logger.info(f'entity scores for model name {model_name} \n {scores}')
         METRICS['PR-AUC'][model_name] = auc
         METRICS['Best F-1'][model_name] = f1
         METRICS['VUS'][model_name] = evaluation_scores['VUS_ROC']

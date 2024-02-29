@@ -1,40 +1,37 @@
-# General parameters
-random_seed: 13
-n_jobs: 5
-overwrite: True
-
-# Model training parameters
+abn_type_list:
+- spikes
+- contextual
+- flip
+- speedup
+- noise
+- cutoff
+- scale
+- wander
+- average
+dataset_path: Mononito/datasets
 downsampling: 10
-trained_model_path: "/mnt/d/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/trained_models/"
-dataset_path: "/mnt/d/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/datasets/"
-
-#docker path
-#trained_model_path: '/trained_models/'
-#dataset_path: '/datasets/'
-
-
+evaluation_metric: Best F-1
+metric: influence
 min_length: 256
-verbose: True
-training_size: 1
-model_architectures: 'all'
-
-# Model evaluation parametersq
-normalize: True
-results_path: "/mnt/d/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/results"
-
-#docker path
-#results_path: '/results/'
+model_architectures: all
+n_jobs: 5
+n_neighbors:
+- 2
+- 4
+- 6
 n_repeats: 2
-split: 'test'
-synthetic_ranking_criterion: 'f1'
-n_validation_splits: 5
-n_neighbors: [2, 4, 6]
 n_splits: 100
-evaluation_metric: 'Best F-1'
-sliding_window: !!null
-metric: 'influence'
+n_validation_splits: 5
+normalize: true
+overwrite: true
+random_seed: 13
+results_path: Mononito/results
+sliding_window: null
+split: test
+synthetic_ranking_criterion: f1
 top_k: 3
-use_all_ranks: False
-top_kr: !!null
-
-abn_type_list: ['spikes', 'contextual', 'flip', 'speedup', 'noise', 'cutoff', 'scale', 'wander', 'average']
+top_kr: null
+trained_model_path: Mononito/trained_models
+training_size: 1
+use_all_ranks: false
+verbose: true

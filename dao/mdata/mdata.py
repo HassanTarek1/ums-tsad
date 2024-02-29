@@ -56,13 +56,20 @@ def add_new_datasets(datasets: list, root_dir):
 
         # Check if there are any subdirectories
         subdirectories = [entry for entry in entries if os.path.isdir(os.path.join(path, entry))]
-        added_datasets = [file for file in os.listdir(path) if file.endswith(".csv")]
+        added_datasets = [os.path.splitext(file)[0] for file in os.listdir(path) if file.endswith(".csv") or file.endswith(".txt")]
         names_of_entities.extend([os.path.join(path, file) for file in os.listdir(path) if
-                               file.lower().endswith('.csv')])
+                               file.lower().endswith('.csv') or file.lower().endswith('.txt')])
         for sub_directory in subdirectories:
-            added_datasets.append(sub_directory)
-            print(sub_directory)
-            names_of_entities.append(f'{path}/{sub_directory}')
+            if sub_directory in ("train"):
+                added_datasets.extend([os.path.splitext(file)[0] for file in os.listdir(f'{path}/{sub_directory}') if
+                                  file.endswith(".csv") or file.endswith(".txt")])
+                names_of_entities.extend([os.path.join(path, file) for file in os.listdir(path) if
+                                          file.lower().endswith('.csv') or file.lower().endswith('.txt')])
+            elif sub_directory not in ("test", "train_label", "test_label"):
+                added_datasets.append(sub_directory)
+                print(sub_directory)
+                names_of_entities.append(f'{path}/{sub_directory}')
+
         for entity in added_datasets:
             cursor = con.cursor()
             # entity = entity.rstrip(".csv")

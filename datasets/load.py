@@ -1,3 +1,4 @@
+import csv
 import os
 import shutil
 import numpy as np
@@ -46,15 +47,16 @@ def load_data(dataset: str, group: str, entities: Union[str, List[str]], downsam
     verbose: bool
         Controls verbosity
     """
+    dataset = dataset.lower()
     if dataset == 'smd':
         return load_smd(group=group, machines=entities, downsampling=downsampling, root_dir=root_dir,
                         normalize=normalize, verbose=verbose)
     elif dataset == 'msl':
         return load_msl(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
                         normalize=normalize, verbose=verbose)
-    elif dataset == 'skab':
-        return load_skab(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
-                         normalize=normalize, verbose=verbose)
+    # elif dataset == 'skab':
+    #     return load_skab(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
+    #                      normalize=normalize, verbose=verbose)
     elif dataset == 'smap':
         return load_smap(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
                          normalize=normalize, verbose=verbose)
@@ -70,11 +72,28 @@ def load_data(dataset: str, group: str, entities: Union[str, List[str]], downsam
                          normalize=normalize, verbose=verbose)
 
 
+
+def detect_delimiter(file_path):
+    """
+    Detects the delimiter of a CSV file by reading its first row.
+    :param file_path: Path to the CSV file.
+    :return: The detected delimiter.
+    """
+    with open(file_path, 'r', newline='', encoding='utf-8') as csvfile:
+        # Read the first line and detect delimiter
+        sniffer = csv.Sniffer()
+        delimiter = sniffer.sniff(csvfile.readline()).delimiter
+    return delimiter
+
+
 def load_csv_file(data_path: str, name_of_data: str, group: str, normalize: bool, verbose: bool):
     scaler = MinMaxScaler()
     entities = []
+    delimiter = detect_delimiter(data_path)
+    df = pd.read_csv(data_path,delimiter=delimiter, parse_dates=True)
+    date_column_name = df.columns[0]
+    df.set_index(date_column_name, inplace=True)
 
-    df = pd.read_csv(data_path, index_col=0, parse_dates=True)
     X = df
     X_train, X_test, = train_test_split(X, test_size=0.2, random_state=42)
     X_train = X_train.values.T
@@ -101,7 +120,10 @@ def load_csv_file(data_path: str, name_of_data: str, group: str, normalize: bool
 
 
 def load_any_dataset(group, root_dir, dataset, entity, normalize=True, verbose=True):
-    data_path = f'{root_dir}/{dataset}/{entity}'
+    if isinstance(entity, list):
+        data_path = f'{root_dir}/{dataset}/{entity[0]}'
+    else:
+        data_path = f'{root_dir}/{dataset}/{entity}'
     if os.path.isfile(f'{data_path}.csv'):
         dataset = load_csv_file(f'{data_path}.csv', entity, group, normalize, verbose)
     else:
@@ -211,54 +233,54 @@ def download_nasa(root_dir='./data'):
                   decompress=False)
 
 
-def load_skab(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
-    """
-    Function to find the names of entities in SKAB dataset folder and adding them to a Dataset object
-    """
-    root_dir = f'{root_dir}/SKAB'
-    scaler = MinMaxScaler()
-    entities = []
-    files_list = []
-    entities_names = []
-    for root, dirs, files in os.walk(root_dir):
-        for dir in dirs:
-            for file in os.listdir(f'{root_dir}/{dir}'):
-                file_name = file.split('.')[0]
-                entity_name = f'{dir}-{file_name}'
-                file_path = f'{dir}/{file}'
-                files_list.append(file_path)
-                entities_names.append(entity_name)
-
-    for i in range(len(files_list)):
-        path = files_list[i]
-        df = pd.read_csv(f"{root_dir}/{path}", index_col=0, sep=';', parse_dates=True)
-        X = df.drop(['anomaly', 'changepoint'], axis=1)
-        y = df['anomaly']
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-        X_train = X_train.values.T
-        X_test = X_test.values.T
-        y_train = y_train.values.T
-        y_test = y_test.values.T
-        if group == 'train':
-            name = 'skab-train'
-            if normalize:
-                scaler.fit(X_train)
-                Y = scaler.transform(X_train)
-            entity = Entity(Y=Y, name=entities_names[i], labels=y_train, verbose=verbose)
-            entities.append(entity)
-
-        elif group == 'test':
-            name = 'skab-test'
-            if normalize:
-                scaler.fit(X_test)
-                Y = scaler.transform(X_test)
-
-            entity = Entity(Y=Y, name=entities_names[i], labels=y_test, verbose=verbose)
-            entities.append(entity)
-    skab = Dataset(entities=entities, name=name, verbose=verbose)
-
-    return skab
-    pass
+# def load_skab(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
+#     """
+#     Function to find the names of entities in SKAB dataset folder and adding them to a Dataset object
+#     """
+#     root_dir = f'{root_dir}/SKAB'
+#     scaler = MinMaxScaler()
+#     entities = []
+#     files_list = []
+#     entities_names = []
+#     for root, dirs, files in os.walk(root_dir):
+#         for dir in dirs:
+#             for file in os.listdir(f'{root_dir}/{dir}'):
+#                 file_name = file.split('.')[0]
+#                 entity_name = f'{dir}-{file_name}'
+#                 file_path = f'{dir}/{file}'
+#                 files_list.append(file_path)
+#                 entities_names.append(entity_name)
+#
+#     for i in range(len(files_list)):
+#         path = files_list[i]
+#         df = pd.read_csv(f"{root_dir}/{path}", index_col=0, sep=';', parse_dates=True)
+#         X = df.drop(['anomaly', 'changepoint'], axis=1)
+#         y = df['anomaly']
+#         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+#         X_train = X_train.values.T
+#         X_test = X_test.values.T
+#         y_train = y_train.values.T
+#         y_test = y_test.values.T
+#         if group == 'train':
+#             name = 'skab-train'
+#             if normalize:
+#                 scaler.fit(X_train)
+#                 Y = scaler.transform(X_train)
+#             entity = Entity(Y=Y, name=entities_names[i], labels=y_train, verbose=verbose)
+#             entities.append(entity)
+#
+#         elif group == 'test':
+#             name = 'skab-test'
+#             if normalize:
+#                 scaler.fit(X_test)
+#                 Y = scaler.transform(X_test)
+#
+#             entity = Entity(Y=Y, name=entities_names[i], labels=y_test, verbose=verbose)
+#             entities.append(entity)
+#     skab = Dataset(entities=entities, name=name, verbose=verbose)
+#
+#     return skab
+#     pass
 
 
 # def load_apple(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
@@ -416,7 +438,7 @@ def load_anomaly_archive(group, datasets=None, downsampling=None, min_length=Non
     for file in os.listdir(os.path.join(root_dir, 'Anomaly_Archive')):
 
         downsampling_entity = downsampling
-        if '_'.join(file.split('_')[:4]) in datasets:
+        if '_'.join(file.split('_')[:4]) in datasets or file.split('.')[0] in datasets:
             with open(os.path.join(root_dir, 'Anomaly_Archive', file)) as f:
                 Y = f.readlines()
                 if len(Y) == 1:

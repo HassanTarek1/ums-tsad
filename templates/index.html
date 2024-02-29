@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>ums-tsad</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='classic.css') }}">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
     <script type="text/javascript">
@@ -38,72 +38,99 @@
 
 <body>
 
-<div id="variable-display-container">
-    <label for="variableDisplay">Datasets Location: </label>
-    <input type="text" id="variableDisplay" name="variableDisplay" value="{{ data_dir }}                 Can be changed from configs/config.yml" readonly>
-</div>
+ {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
 
 <div class="wrapper">
-<div class="add-model-form">
-  <form id="add-model-form" action="/mmodel/add-model" method="post">
-    <label for="newModelName">New Model Name:</label>
-    <input type="text" id="newModelName" name="newModelName" required>
-    <input type="submit" value="Add Model">
-  </form>
-</div>
-<div class="box0">
-<fieldset>
-    <legend>Flash The Page:</legend>
-<h3><a href="/">flash</a></h3>
-
-</fieldset>
-</div>
-
-<form id="train-form" action="/mmodel/train" method="POST">
 
 
-<div class="box1">
+<div class="card">
+      <div class="card-body">
+        <fieldset>
+            <legend>Flash The Page:</legend>
+            <h3><a href="/">flash</a></h3>
 
-      <fieldset>
-          <legend>Choose DataSet:</legend>
-<select class="form-control"  id="dataset_selection" name="dataset_selection">
-
-    <option selected="selected">--select a dataset--</option>
-
-    {% for dataset_type in dataset_types %}
-            <option value="{{ dataset_type }}"> {{ dataset_type }} </option>
-    {% endfor %}
-</select>
-      </fieldset>
-</div>
-
-<div class="box2">
-    <fieldset>
-          <legend>Choose Data Entity:</legend>
-<select class="form-control" id="dataset_entity_selection" name="dataset_entity_selection">
-    <option selected="selected">--select a dataset entity--</option>
-</select>
         </fieldset>
+      </div>
+
 </div>
+<div class="card">
+    <div class="card-body">
+        <div id="variable-display-container">
+            <label for="variableDisplay">Datasets Location: </label>
+            <input type="text" id="variableDisplay" name="variableDisplay" value="{{ data_dir }}" readonly>
 
-    <fieldset>
-    <legend>Choose Algorithms:</legend>
-    {% for algorithm in algorithm_list %}
-        <div class="algorithm-item">
-            <input name="algorithm_option" value="{{ algorithm }}" type="checkbox" id="alg-{{ algorithm }}">
-            <label for="alg-{{ algorithm }}">{{ algorithm }}</label>
-            <button type="button" class="delete-btn" onclick="deleteAlgorithm('{{ algorithm }}')">Delete</button>
-<!--            <form action="/mmodel/delete-algorithm" method="post" style="display: inline;">-->
-<!--                <input type="hidden" name="algorithm_name" value="{{ algorithm }}">-->
-<!--                <button type="submit" class="delete-btn">Delete</button>-->
-<!--            </form>-->
         </div>
+        <form action="/mmodel/update-config" method="post">
+            <label for="path">Enter new path:</label>
+            <input type="text" id="path" name="path" required>
+            <input type="submit" value="Update Config">
+        </form>
+    </div>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div class="add-model-form">
+            <form id="add-model-form" action="/mmodel/add-model" method="post">
+                <label for="newModelName">New Model Name:</label>
+                <input type="text" id="newModelName" name="newModelName" required>
+                <input type="submit" value="Add Model">
+            </form>
+        </div>
+    </div>
+</div>
+<form id="train-form" action="/mmodel/train" method="POST">
+    <div class="card">
+        <div class="card-body">
+            <div class="box1">
 
-    {% endfor %}
-    </fieldset>
+                <fieldset>
+                    <legend>Choose DataSet:</legend>
+                    <select class="form-control"  id="dataset_selection" name="dataset_selection">
 
+                        <option selected="selected">--select a dataset--</option>
 
-<input type="submit" value="train" >
+                        {% for dataset_type in dataset_types %}
+                        <option value="{{ dataset_type }}"> {{ dataset_type }} </option>
+                        {% endfor %}
+                    </select>
+                </fieldset>
+            </div>
+
+            <div class="box2">
+                <fieldset>
+                    <legend>Choose Data Entity:</legend>
+                    <select class="form-control" id="dataset_entity_selection" name="dataset_entity_selection">
+                        <option selected="selected">--select a dataset entity--</option>
+                    </select>
+                </fieldset>
+            </div>
+
+            <fieldset>
+                <legend>Choose Algorithms:</legend>
+                {% for algorithm in algorithm_list %}
+                <div class="algorithm-item">
+                    <input name="algorithm_option" value="{{ algorithm }}" type="checkbox" id="alg-{{ algorithm }}">
+                    <label for="alg-{{ algorithm }}">{{ algorithm }}</label>
+                    <button type="button" class="delete-btn" onclick="deleteAlgorithm('{{ algorithm }}')">Delete</button>
+                    <!--            <form action="/mmodel/delete-algorithm" method="post" style="display: inline;">-->
+                    <!--                <input type="hidden" name="algorithm_name" value="{{ algorithm }}">-->
+                    <!--                <button type="submit" class="delete-btn">Delete</button>-->
+                    <!--            </form>-->
+                </div>
+
+                {% endfor %}
+            </fieldset>
+            <input type="submit" value="train" >
+        </div>
+    </div>
+
 </form>
 
 </div>
@@ -152,7 +179,7 @@
     <!-- Modal content -->
     <div class="modal-content">
         <span class="close">&times;</span>
-        <p id="modal-text">Some text in the Modal..</p>
+        <p id="modal-text"></p>
     </div>
 </div>
 

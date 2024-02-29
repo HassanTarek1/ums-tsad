@@ -1,0 +1,229 @@
+body {
+  background-color: #343a40; /* Dark gray background */
+  color: #fff; /* White text color for contrast */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+}
+
+/* Sidebar styles */
+.sidebar {
+  background-color: #23272b;
+  color: #ffffff;
+}
+#variableDisplay[readonly] {
+    cursor: not-allowed; /* Cursor to indicate it's not editable */
+}
+
+/* Main content styles */
+.main-content {
+  background-color: #23272b;
+  padding: 20px;
+  border-radius: 5px;
+  margin-top: 20px;
+}
+
+/* Card styles */
+.card {
+  background-color: #3c3f43;
+  margin-bottom: 20px;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+}
+
+.card-header {
+  background-color: #23272b;
+  border-bottom: 1px solid #464a4e;
+  color: #ffffff;
+  padding: 15px 20px;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.card-body {
+  padding: 20px;
+}
+a { /* Adding anchor tags to the button styling */
+    background-color: #007bff; /* Warm, muted yellow for buttons */
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    text-decoration: none; /* Removes underline from links */
+    display: inline-block;
+    margin-right: 10px; /* Spacing between buttons/links */
+    transition: all 0.3s ease;
+}
+a:hover {
+    background-color: #0056b3; /* Darker shade for hover state */
+    color: #FFF;
+}
+/* Table styles */
+table {
+  width: 100%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+th, td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #464a4e;
+}
+
+th {
+  background-color: #23272b;
+}
+
+/* Form and input styles */
+input[type='text'], select, textarea, .form-control {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  background-color: #3c3f43;
+  color: #ffffff;
+  border: 1px solid #464a4e;
+  border-radius: 5px;
+}
+
+input[type='submit'], button {
+  background-color: #007bff;
+  color: #ffffff;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+input[type='submit']:hover, button:hover {
+  background-color: #0056b3;
+}
+
+.delete-btn {
+    padding: 3px 8px;
+    background-color: #d9534f; /* Red color for delete button */
+    border-color: #d9534f; /* Red border for delete button, if needed */
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.delete-btn:hover {
+    background-color: #c9302c;
+}
+/* Utility classes for spacing */
+.mt-20 {
+  margin-top: 20px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.pt-20 {
+  padding-top: 20px;
+}
+
+.pb-20 {
+  padding-bottom: 20px;
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  .wrapper {
+    width: auto;
+    padding: 10px;
+  }
+
+  .sidebar {
+    display: none; /* Hide sidebar on small screens */
+  }
+
+  .card, .main-content {
+    margin-top: 10px;
+  }
+}
+.clickable:hover {
+  cursor: pointer;
+  background-color: #485791; /* Light grey background on hover */
+}
+
+.collapse {
+  display: none; /* Ensure collapsible rows are hidden by default */
+}
+#data tbody tr td a {
+    display: inline-flex; /* Inline-flex will allow you to align items centrally */
+    justify-content: center; /* Center the text inside the button */
+    align-items: center; /* Center the text vertically */
+    text-decoration: none;
+    color: white;
+    background-color: #007bff; /* Bootstrap primary button color */
+    padding: 8px 12px;
+    margin: 4px; /* Space between buttons */
+    border: none; /* Remove border */
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    flex: 1; /* Each button will take up equal space */
+}
+#data tbody tr td a.delete-btn {
+    background-color: #d9534f; /* Red color for delete button */
+    border-color: #d9534f; /* Red border for delete button, if needed */
+}
+
+#data tbody tr td a.delete-btn:hover {
+    background-color: #c9302c; /* Darker red on hover */
+}
+
+#data tbody tr td a:hover {
+    background-color: #0056b3; /* Darken the button on hover */
+}
+.button-container {
+    display: flex; /* This will line up the child elements (buttons) in a row */
+    justify-content: space-around; /* This will put equal space around the buttons */
+    padding: 8px; /* Add some padding around the container */
+}
+.modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+        background-color: #3c3f43;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #464a4e;
+        width: 80%; /* Could be more or less, depending on screen size */
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }

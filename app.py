@@ -10,7 +10,7 @@ from dao.mmodel.mmodel import query_algorithm_name
 from utils.utils import get_args_from_cmdline
 
 app = create_app()
-
+app.secret_key = 'secret_key'
 @app.route('/',methods = ['GET','POST'])
 def index():
 

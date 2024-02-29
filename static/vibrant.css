@@ -1,0 +1,186 @@
+/* Base layout styles */
+body {
+    font-family: 'Roboto', sans-serif;
+    color: #02075D; /* This is a dark color for text for better readability */
+    background-color: #D9D9D9; /* Lightest color in the palette for the background */
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.wrapper {
+    max-width: 1100px;
+    margin: 30px auto;
+    padding: 20px;
+    background: #FFFFFF; /* Second lightest color for card backgrounds */
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+.clickable:hover {
+  cursor: pointer;
+  background-color: #f5f5f5; /* Light grey background on hover */
+}
+
+.collapse {
+  display: none; /* Ensure collapsible rows are hidden by default */
+}
+
+#variableDisplay[readonly] {
+    background-color: #fff;
+    cursor: not-allowed; /* Cursor to indicate it's not editable */
+}
+/* Typography */
+h1, h2, h3, h4 {
+    color: #D62828; /* Neutral color for headings */
+}
+
+/* Buttons and interactive elements */
+button,
+input[type="submit"],
+input[type="button"],
+a { /* Adding anchor tags to the button styling */
+    background-color: #003049; /* Warm, muted yellow for buttons */
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    text-decoration: none; /* Removes underline from links */
+    display: inline-block;
+    margin-right: 10px; /* Spacing between buttons/links */
+    transition: all 0.3s ease;
+}
+
+button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+a:hover {
+    background-color: #438ec5; /* Darker shade for hover state */
+    color: #FFF;
+}
+/* Style for delete buttons next to each algorithm */
+.delete-btn {
+    padding: 3px 8px;
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.delete-btn:hover {
+    background-color: #c9302c;
+}
+
+/* Form elements */
+input[type="text"],
+select,
+textarea {
+    border: 1px solid #FCBF49; /* Border color from the button */
+    background-color: #FFF;
+    padding: 10px;
+    margin-bottom: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Table styles */
+table {
+    width: 90%;
+    border-collapse: collapse;
+    background-color: #FFF;
+    margin: 20px auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+th,
+td {
+    padding: 10px;
+    border: 1px solid #FCBF49; /* Border color from the button */
+    text-align: left;
+}
+
+th {
+    background-color: #F77F00; /* Header background from button color */
+    color: #FFF;
+}
+
+tr:nth-child(even) {
+    background-color: #FCEFE9; /* Second lightest color for alternating rows */
+}
+#data tbody tr td a {
+    display: inline-flex; /* Inline-flex will allow you to align items centrally */
+    justify-content: center; /* Center the text inside the button */
+    align-items: center; /* Center the text vertically */
+    text-decoration: none;
+    color: white;
+    background-color: #003049; /* Bootstrap primary button color */
+    padding: 8px 12px;
+    margin: 4px; /* Space between buttons */
+    border: none; /* Remove border */
+    border-radius: 5px;
+    transition: background-color 0.3s;
+    flex: 1; /* Each button will take up equal space */
+}
+#data tbody tr td a.delete-btn {
+    background-color: #d9534f; /* Red color for delete button */
+    border-color: #d9534f; /* Red border for delete button, if needed */
+}
+
+#data tbody tr td a.delete-btn:hover {
+    background-color: #c9302c; /* Darker red on hover */
+}
+
+#data tbody tr td a:hover {
+    background-color: #438ec5; /* Darken the button on hover */
+}
+.button-container {
+    display: flex; /* This will line up the child elements (buttons) in a row */
+    justify-content: space-around; /* This will put equal space around the buttons */
+    padding: 8px; /* Add some padding around the container */
+}
+/* Specific style for the delete button */
+
+
+/* Add a general font style to the table (optional) */
+#data {
+  font-family: Arial, sans-serif;
+}
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+    background-color: #FFFFFF;
+    margin: auto;
+    padding: 20px;
+    border: 1px solid #FCBF49;
+    width: 50%;
+    border-radius: 8px;
+}
+
+.close {
+    color: #003049;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #D62828;
+    text-decoration: none;
+    cursor: pointer;
+}
