@@ -155,7 +155,7 @@ class RankModels(object):
             n_splits=n_splits)
 
         self.models_performance_matrix = pd.concat([
-            self.models_forecasting_metrics, self.models_evaluation_metrics, self.models_synthetic_anomlies
+            self.models_centrality, self.models_synthetic_anomlies
         ],
                                                    axis=1)
         # self.models_forecasting_metrics,
