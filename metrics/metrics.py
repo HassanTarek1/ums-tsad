@@ -586,10 +586,4 @@ def calculate_cdi(RC, NC, NA, weights=None):
 
     # CDI calculation as a weighted sum of RC, NC, and NA
     cdi = weights[0] * RC + weights[1] * NC + weights[2] * NA
-    print("RC")
-    print(RC)
-    print("NC")
-    print(NC)
-    print("NA")
-    print(NA)
     return cdi

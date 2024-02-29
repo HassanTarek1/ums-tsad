@@ -5,8 +5,8 @@ overwrite: True
 
 # Model training parameters
 downsampling: 10
-trained_model_path: "/mnt/d/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/trained_models/"
-dataset_path: "/mnt/d/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/datasets/"
+trained_model_path: "D:/Master/WS 2023/RP/My work/codes/ums-tsad/ums-tsad/ums-tsad/Mononito/trained_models/"
+dataset_path: "D:/Master/WS 2023/RP/My work/codes/ums-tsad/ums-tsad/ums-tsad/Mononito/datasets/"
 
 #docker path
 #trained_model_path: '/trained_models/'
@@ -20,7 +20,7 @@ model_architectures: 'all'
 
 # Model evaluation parametersq
 normalize: True
-results_path: "/mnt/d/Education/Master's courses/Semester 3/Research project/code/ums-tsad/ums-tsad/Mononito/results"
+results_path: "D:/Master/WS 2023/RP/My work/codes/ums-tsad/ums-tsad/ums-tsad/Mononito/results"
 
 #docker path
 #results_path: '/results/'
