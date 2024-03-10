@@ -79,7 +79,9 @@
         <div class="add-model-form">
             <form id="add-model-form" action="/mmodel/add-model" method="post">
                 <label for="newModelName">New Model Name:</label>
-                <input type="text" id="newModelName" name="newModelName" required>
+                <select id="newModelName" name="newModelName" required>
+                    <!-- Options will be added here dynamically -->
+                </select>
                 <input type="submit" value="Add Model">
             </form>
         </div>
@@ -212,6 +214,23 @@
         }
         modal.style.display = "block";
     }
+</script>
+
+ <script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/mmodel/get-model-names')
+        .then(response => response.json())
+        .then(data => {
+            const selectElement = document.getElementById('newModelName');
+            data.forEach(modelName => {
+                const option = document.createElement('option');
+                option.value = modelName;
+                option.text = modelName.charAt(0).toUpperCase() + modelName.slice(1); // Capitalize first letter
+                selectElement.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error fetching model names:', error));
+});
 </script>
 
 <script>

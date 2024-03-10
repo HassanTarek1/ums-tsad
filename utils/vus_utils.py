@@ -309,7 +309,7 @@ class metricor:
         # recall = min(TP/P,1)
         P_new = (P+np.sum(labels))/2      # so TPR is neither large nor small
         # P_new = np.sum(labels)
-        recall = min(TP/P_new,1)
+        recall = min(TP / (P_new + 1e-10), 1)
         # recall = TP/np.sum(labels)
         # print('recall '+str(recall))
         
@@ -319,7 +319,7 @@ class metricor:
             if np.sum(product[seg[0]:(seg[1]+1)])>0:
                 existence += 1
                 
-        existence_ratio = existence/len(L)
+        existence_ratio = existence / (len(L) + 1e-10)
         # print(existence_ratio)
         
         # TPR_RangeAUC = np.sqrt(recall*existence_ratio)
@@ -331,9 +331,9 @@ class metricor:
         
         # FPR_RangeAUC = FP/(FP+TN)
         N_new = len(labels) - P_new
-        FPR_RangeAUC = FP/N_new
+        FPR_RangeAUC = FP / (N_new + 1e-10)
         
-        Precision_RangeAUC = TP/np.sum(pred)
+        Precision_RangeAUC = TP / (np.sum(pred) + 1e-10)
         
         return TPR_RangeAUC, FPR_RangeAUC, Precision_RangeAUC
     

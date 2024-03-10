@@ -209,6 +209,14 @@ def update_config():
         flash('The provided path does not exist.', 'error')
 
     return redirect(url_for('index'))
+
+@mmodel_bp.route('/get-model-names', methods=['GET'])
+def get_model_names():
+    module_names = []
+    for _, module_name, _ in pkgutil.walk_packages(pyod_models.__path__, prefix=pyod_models.__name__ + '.'):
+        module_names.append(module_name.split('.')[-1])  # Just get the last part for display
+
+    return jsonify(module_names)
 @mmodel_bp.route('/add-model', methods=['POST'])
 def add_model():
     data = request.get_json()  # Get JSON data from the request

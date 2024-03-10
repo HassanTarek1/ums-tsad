@@ -318,3 +318,4 @@ COF_PARAM_GRID = {
     'contamination':[0.1,0.15,0.2,0.25],
     'device': [None]
 }
+

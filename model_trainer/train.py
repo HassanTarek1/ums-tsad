@@ -37,6 +37,7 @@ from algorithm.abod import TsadABOD
 from algorithm.cblof import TsadCblof
 from algorithm.cof import  TsadCof
 from algorithm.sos import TsadSOS
+from algorithm.dagmm.dagmm import DAGMM
 
 class TrainModels(object):
     """Class to pre-train algorithm on a dataset/entity.
@@ -183,6 +184,8 @@ class TrainModels(object):
 
             elif ('SOS' == model_name) & (model_name not in exist_model_list):
                 self.train_sos()
+            elif ('DAGMM' == model_name) & (model_name not in exist_model_list):
+                self.train_dagmm()
             elif (model_name not in exist_model_list):
                 self.train_pyod(model_name)
 
@@ -1101,6 +1104,85 @@ class TrainModels(object):
                                       obj_class=self.logging_hierarchy)
 
 
+    def train_dagmm(self):
+        MODEL_ID = 0
+        model_hyper_param_configurations = list(ParameterGrid(PYOD_PARAM_GRID))
+        train_hyper_param_configurations = list(
+            ParameterGrid(PYOD_TRAIN_PARAM_GRID))
+        for train_hyper_params in tqdm(train_hyper_param_configurations):
+            for model_hyper_params in tqdm(model_hyper_param_configurations):
+                model = DAGMM(comp_hiddens=[128, 64, 2],
+                              est_hiddens=[100, 50],
+                              est_dropout_ratio=0.25,
+                              minibatch_size=512,
+                              epoch_size=20,
+                              learning_rate=0.0001,
+                              lambda1=0.1,
+                              lambda2=0.0001)
+
+                if not self.overwrite:
+                    if self.logging_obj.check_file_exists(
+                            obj_class=self.logging_hierarchy,
+                            obj_name=f"DAGMM_{MODEL_ID + 1}"):
+                        print(f'Model DAGMM_{MODEL_ID + 1} already trained!')
+                        continue
+
+                dataloader = Loader(
+                    dataset=self.train_data,
+                    batch_size=self.batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0)
+                model.fit(dataloader)
+
+                img_name = f"DAGMM_{MODEL_ID + 1}.png"
+                img_path = os.path.join(self.img_dir, img_name)
+                logger.info(f'img_path is {img_path} ')
+
+                test_dataloader = Loader(
+                    dataset=self.test_data,
+                    batch_size=self.batch_size,
+                    window_size=model_hyper_params['window_size'],
+                    window_step=model_hyper_params['window_step'],
+                    shuffle=False,
+                    padding_type='right',
+                    sample_with_replace=False,
+                    verbose=False,
+                    mask_position='None',
+                    n_masked_timesteps=0
+                )
+
+                for batch in test_dataloader:
+                    Y, Y_hat, mask = model.forward(batch)
+
+                    Y, Y_hat, mask = Y.detach().cpu().numpy(), Y_hat.detach().cpu().numpy(), mask.detach().cpu().numpy()
+
+                batch_num = 0
+                feature_num = 0
+                fig, axes = plt.subplots(1, 1, sharey=True, figsize=(15, 4))
+                axes.plot(Y[batch_num, feature_num, :].flatten(), c='darkblue', label='Y')
+                axes.plot(Y_hat[batch_num, feature_num, :].flatten(), c='red', label='Y_hat')
+                axes.legend(fontsize=16)
+                plt.savefig(img_path, format='png')
+                plt.clf()
+                plt.close()
+
+                MODEL_ID = MODEL_ID + 1
+                # Save the model
+                self.logging_obj.save(obj=model,
+                                      obj_name=f"DAGMM_{MODEL_ID}",
+                                      obj_meta={
+                                          'train_hyperparameters':
+                                              train_hyper_params,
+                                          'model_hyperparameters':
+                                              model_hyper_params
+                                      },
+                                      obj_class=self.logging_hierarchy)
 
     def train_pyod(self,model_name:str,batch_size=32):
         MODEL_ID = 0
