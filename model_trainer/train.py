@@ -38,7 +38,7 @@ from algorithm.cblof import TsadCblof
 from algorithm.cof import  TsadCof
 from algorithm.sos import TsadSOS
 from algorithm.nhi import NHiModel
-from algorithm.dagmm.dagmm import DAGMM
+from algorithm.tranad import TranModel
 
 class TrainModels(object):
     """Class to pre-train algorithm on a dataset/entity.
@@ -187,6 +187,8 @@ class TrainModels(object):
                 self.train_sos()
             elif ('NHI' == model_name) & (model_name not in exist_model_list):
                 self.train_nhi()
+            elif ('TRANAD' == model_name) & (model_name not in exist_model_list):
+                self.train_tranad()
             elif (model_name not in exist_model_list):
                 self.train_pyod(model_name)
 
@@ -1121,6 +1123,26 @@ class TrainModels(object):
                         continue
 
                 self.train('NHI', model, model_hyper_params, train_hyper_params, MODEL_ID)
+                MODEL_ID = MODEL_ID + 1
+
+
+    def train_tranad(self, batch_size=32):
+        MODEL_ID = 0
+        model_hyper_param_configurations = list(ParameterGrid(PYOD_PARAM_GRID))
+        train_hyper_param_configurations = list(
+            ParameterGrid(PYOD_TRAIN_PARAM_GRID))
+        for train_hyper_params in tqdm(train_hyper_param_configurations):
+            for model_hyper_params in tqdm(model_hyper_param_configurations):
+                model = NHiModel(**model_hyper_params)
+
+                if not self.overwrite:
+                    if self.logging_obj.check_file_exists(
+                            obj_class=self.logging_hierarchy,
+                            obj_name=f"TRANAD{MODEL_ID + 1}"):
+                        print(f'Model TRANAD{MODEL_ID + 1} already trained!')
+                        continue
+
+                self.train('TRANAD', model, model_hyper_params, train_hyper_params, MODEL_ID)
                 MODEL_ID = MODEL_ID + 1
     def train_pyod(self,model_name:str,batch_size=32):
         MODEL_ID = 0

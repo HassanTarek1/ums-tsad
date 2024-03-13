@@ -1,13 +1,12 @@
 
-from oats.models import NHiTSModel
+from oats.models import TranADModel
 from algorithm.base_model import PyMADModel
 import torch as t
 from utils.utils import de_unfold
 import numpy as np
-import pandas as pd
 
 
-class NHiModel(PyMADModel):
+class TranModel(PyMADModel):
 
     def __init__(self, window_size=1, window_step=1, contamination=0.1, device=None):
         '''
@@ -18,18 +17,14 @@ class NHiModel(PyMADModel):
             The amount of contamination of the data set, i.e. the proportion of outliers in the data set. Used when fitting to define the threshold on the decision function.
         :param device:
         '''
-        super(NHiModel, self).__init__()
+        super(TranModel, self).__init__()
 
         self.contamination = contamination
-        self.model = NHiTSModel()
+        self.model = TranADModel()
         self.window_size = window_size
         self.window_step = window_step
         self.device = device
-        self.data = None
 
-
-    def set_data(self, data):
-        self.data=data
     def fit(self, train_dataloader):
         n_batches, n_features, n_time = train_dataloader.Y_windows.shape
 
@@ -44,16 +39,16 @@ class NHiModel(PyMADModel):
         t_Y = Y.reshape(n_batches * n_features * n_time).reshape(-1, 1).numpy()
         # print(f't_Y is {t_Y},shape is {t_Y.shape}')
         try:
-            df = pd.DataFrame(t_Y)
-            self.model.fit(df,epochs=1)
-            t_Y_score = self.model.get_scores(df)
-
+            t_Y_score = self.model.get_scores(t_Y)
+            print(f't-y scores are {t_Y_score}')
         except Exception as e:
             print(f'An error occurred {e}')
         t_Y_score[np.isnan(t_Y_score)] = 1.1
+        # print(f'ori  t_Y_score is {t_Y_score}')
         t_Y_score = np.array([abs(i) for i in t_Y_score])
         t_Y_score[t_Y_score > 1.5] = 1.5
         t_Y_score = t_Y_score.reshape(-1, 1)
+        # print(f't_Y_score is {t_Y_score}')
         Y_hat = t_Y * t_Y_score
         Y_hat = Y_hat.reshape(n_batches, n_features, n_time)
 

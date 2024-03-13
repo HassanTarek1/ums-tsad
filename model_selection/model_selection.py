@@ -109,6 +109,7 @@ class RankModels(object):
         _ = self.get_random_syn_anomaly_params()
 
         for model_name in tqdm(self.MODEL_NAMES):
+            print(f'\n ------------Evaluating {model_name} ---------------\n')
             with open(
                     os.path.join(self.TRAINED_MODELS_PATH,
                                  f'{model_name}.pth'), 'rb') as f:
