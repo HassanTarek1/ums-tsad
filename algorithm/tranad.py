@@ -4,6 +4,7 @@ from algorithm.base_model import PyMADModel
 import torch as t
 from utils.utils import de_unfold
 import numpy as np
+import pandas as pd
 
 
 class TranModel(PyMADModel):
@@ -39,8 +40,9 @@ class TranModel(PyMADModel):
         t_Y = Y.reshape(n_batches * n_features * n_time).reshape(-1, 1).numpy()
         # print(f't_Y is {t_Y},shape is {t_Y.shape}')
         try:
-            t_Y_score = self.model.get_scores(t_Y)
-            print(f't-y scores are {t_Y_score}')
+            df = pd.DataFrame(t_Y)
+            t_Y_score = self.model.get_scores(df)
+
         except Exception as e:
             print(f'An error occurred {e}')
         t_Y_score[np.isnan(t_Y_score)] = 1.1
@@ -70,6 +72,12 @@ class TranModel(PyMADModel):
     def window_anomaly_score(self, input, return_detail: bool = False):
 
         # Forward
+        Y = input['Y']
+        n_batches, n_features, n_time = Y.shape
+
+        t_Y = Y.reshape(n_batches * n_features * n_time).reshape(-1, 1).numpy()
+        df = pd.DataFrame(t_Y)
+        self.model.fit(df, epochs=1)
         Y, Y_hat, mask = self.forward(input=input)
 
         # Anomaly Score

@@ -45,7 +45,6 @@ class NHiModel(PyMADModel):
         # print(f't_Y is {t_Y},shape is {t_Y.shape}')
         try:
             df = pd.DataFrame(t_Y)
-            self.model.fit(df,epochs=1)
             t_Y_score = self.model.get_scores(df)
 
         except Exception as e:
@@ -75,6 +74,12 @@ class NHiModel(PyMADModel):
     def window_anomaly_score(self, input, return_detail: bool = False):
 
         # Forward
+        Y = input['Y']
+        n_batches, n_features, n_time = Y.shape
+
+        t_Y = Y.reshape(n_batches * n_features * n_time).reshape(-1, 1).numpy()
+        df = pd.DataFrame(t_Y)
+        self.model.fit(df,epochs=1)
         Y, Y_hat, mask = self.forward(input=input)
 
         # Anomaly Score
