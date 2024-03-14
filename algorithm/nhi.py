@@ -35,7 +35,7 @@ class NHiModel(PyMADModel):
 
         Y_windows = train_dataloader.Y_windows.reshape(n_batches * n_features * n_time, -1).reshape(-1, 1)
 
-        self.model.fit(Y_windows,epochs=3)
+        self.model.fit(Y_windows,epochs=15)
 
     def forward(self, input):
         Y = input['Y']
@@ -79,7 +79,7 @@ class NHiModel(PyMADModel):
 
         t_Y = Y.reshape(n_batches * n_features * n_time).reshape(-1, 1).numpy()
         df = pd.DataFrame(t_Y)
-        self.model.fit(df,epochs=1)
+        self.model.fit(df,epochs=15)
         Y, Y_hat, mask = self.forward(input=input)
 
         # Anomaly Score
