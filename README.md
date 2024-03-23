@@ -10,7 +10,7 @@ The project is organized into several directories and files, each serving a spec
 - `configs/`: Contains configuration files for application settings and model parameters.
 - `controller/`: Flask controllers that manage the routing of web requests.
 - `dao/`: Data Access Object (DAO) for database interactions.
-- `datasets/`: Stores the datasets used for anomaly detection.
+- `datasets/`: Utilities for loading the datsets.
 - `evaluation/`: Utilities for evaluating model performance.
 - `model_selection/`: Implements the model selection algorithm described in the paper.
 - `models/`: Defines the machine learning models.
