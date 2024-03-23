@@ -353,7 +353,6 @@ def calculate_na(normal_centroids, abnormal_centroids):
 
     # Check if avg_normal_distance is zero or NaN
     if not avg_normal_distance or np.isnan(avg_normal_distance):
-        print("Warning: Average normal distance is zero or NaN. NA cannot be meaningfully calculated.")
         # returning 0 means cancelling the importance of it at all.
         return 0
 
