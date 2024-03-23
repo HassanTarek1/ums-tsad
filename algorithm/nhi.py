@@ -79,7 +79,7 @@ class NHiModel(PyMADModel):
 
         t_Y = Y.reshape(n_batches * n_features * n_time).reshape(-1, 1).numpy()
         df = pd.DataFrame(t_Y)
-        self.model.fit(df,epochs=15)
+        self.model.fit(df,epochs=1)
         Y, Y_hat, mask = self.forward(input=input)
 
         # Anomaly Score
