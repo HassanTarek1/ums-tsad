@@ -78,7 +78,7 @@ def train_[algorithm]:
        self.train('[algorithm]', model, model_hyper_params, train_hyper_params, MODEL_ID)
        MODEL_ID = MODEL_ID + 1
 ```
-3. Update the database with the new algorithm identifier.
+3. Update the database `db/tsad.db` with the new algorithm identifier.
 4. For database interaction and management, [DB Browser for SQLite](https://sqlitebrowser.org/) is used. It is an open-source tool to create, design, and edit database files compatible with SQLite.
 
 
