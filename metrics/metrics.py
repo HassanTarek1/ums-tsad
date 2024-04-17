@@ -558,7 +558,7 @@ def calculate_mutual_information(Y: np.ndarray, Y_scores: np.ndarray, normalize:
     mi = mutual_info_score(Y, Y_scores)
     if normalize:
         # Normalize the MI score to lie between 0 and 1
-        max_mi = min(np.log(np.unique(Y).size), np.log(np.unique(Y_scores).size))
+        max_mi = min(np.log(np.unique(Y).size), np.log(np.unique(Y_scores).size) )
         mi /= max_mi
     return mi
 

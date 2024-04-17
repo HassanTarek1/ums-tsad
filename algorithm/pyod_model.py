@@ -35,7 +35,7 @@ def create_model(model_name, all_pyod_modules, **kwargs):
 
 class PyodModel(PyMADModel):
 
-    def __init__(self, model_name: str, window_size=1, window_step=1, contamination=0.1, device=None):
+    def __init__(self, model_name: str, window_size=1, window_step=1, device=None):
         '''
 
         :param window_size:
@@ -45,10 +45,8 @@ class PyodModel(PyMADModel):
         :param device:
         '''
         super(PyodModel, self).__init__()
-
-        self.contamination = contamination
         pyod_modules = get_all_module_names(pyod_models)
-        self.model = create_model(model_name, all_pyod_modules=pyod_modules, contamination=self.contamination)
+        self.model = create_model(model_name, all_pyod_modules=pyod_modules)
         self.window_size = window_size
         self.window_step = window_step
         self.device = device

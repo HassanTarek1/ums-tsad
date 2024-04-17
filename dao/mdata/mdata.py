@@ -24,10 +24,7 @@ def check_new_dataset(root_dir):
 
 
 def update_database(datasets_inDB: list, datasets_inDir: list):
-    '''
 
-    :return:
-    '''
     difference = [i for i, item1 in enumerate(datasets_inDB) if
                             item1.lower() not in (item2.lower() for item2 in datasets_inDir)]
     datasets_to_remove = [datasets_inDB[i] for i in difference]

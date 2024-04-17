@@ -276,7 +276,6 @@ PYOD_TRAIN_PARAM_GRID = {
 PYOD_PARAM_GRID = {
     'window_size': [64],
     'window_step': [64],
-    'contamination':[0.1,0.15,0.2,0.25],
     'device': [None]
 }
 
