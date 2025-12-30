@@ -17,7 +17,7 @@ MACHINES = ['machine-1-1', 'machine-1-2', 'machine-1-3', 'machine-1-4', 'machine
             'machine-2-8', 'machine-2-9',
             'machine-3-1', 'machine-3-2', 'machine-3-3', 'machine-3-4', 'machine-3-5', 'machine-3-6', 'machine-3-7',
             'machine-3-8', 'machine-3-9',
-            'machine-3-10', 'machine-3-11']
+            'machine-3-10-old', 'machine-3-11']
 
 # Data URIs
 SMD_URL = 'https://raw.githubusercontent.com/NetManAIOps/OmniAnomaly/master/ServerMachineDataset'
@@ -48,15 +48,23 @@ def load_data(dataset: str, group: str, entities: Union[str, List[str]], downsam
         Controls verbosity
     """
     dataset = dataset.lower()
-    if dataset == 'smd':
+    if dataset == 'smd' or dataset == 'Servermachinedataset':
         return load_smd(group=group, machines=entities, downsampling=downsampling, root_dir=root_dir,
                         normalize=normalize, verbose=verbose)
-    elif dataset == 'msl':
-        return load_msl(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
+    elif dataset == 'nasa':
+        # group, root_dir, dataset, entity, normalize = True, verbose = True)
+        return load_any_dataset(group=group, root_dir=root_dir, dataset=dataset, entity=entities,
                         normalize=normalize, verbose=verbose)
-    # elif dataset == 'skab':
-    #     return load_skab(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
-    #                      normalize=normalize, verbose=verbose)
+    elif dataset.lower() == 'skab':
+        return load_skab(
+            group=group,
+            datasets=entities,
+            downsampling=downsampling,
+            min_length=min_length,
+            root_dir=root_dir,
+            normalize=normalize,
+            verbose=verbose
+        )
     elif dataset == 'smap':
         return load_smap(group=group, channels=entities, downsampling=downsampling, root_dir=root_dir,
                          normalize=normalize, verbose=verbose)
@@ -103,6 +111,8 @@ def load_csv_file(data_path: str, name_of_data: str, group: str, normalize: bool
         if normalize:
             scaler.fit(X_train)
             Y = scaler.transform(X_train)
+        else:
+            Y = X_train
         entity = Entity(Y=Y, name=name_of_data, verbose=verbose)
         entities.append(entity)
 
@@ -233,54 +243,140 @@ def download_nasa(root_dir='./data'):
                   decompress=False)
 
 
-# def load_skab(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):
-#     """
-#     Function to find the names of entities in SKAB dataset folder and adding them to a Dataset object
-#     """
-#     root_dir = f'{root_dir}/SKAB'
-#     scaler = MinMaxScaler()
-#     entities = []
-#     files_list = []
-#     entities_names = []
-#     for root, dirs, files in os.walk(root_dir):
-#         for dir in dirs:
-#             for file in os.listdir(f'{root_dir}/{dir}'):
-#                 file_name = file.split('.')[0]
-#                 entity_name = f'{dir}-{file_name}'
-#                 file_path = f'{dir}/{file}'
-#                 files_list.append(file_path)
-#                 entities_names.append(entity_name)
-#
-#     for i in range(len(files_list)):
-#         path = files_list[i]
-#         df = pd.read_csv(f"{root_dir}/{path}", index_col=0, sep=';', parse_dates=True)
-#         X = df.drop(['anomaly', 'changepoint'], axis=1)
-#         y = df['anomaly']
-#         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-#         X_train = X_train.values.T
-#         X_test = X_test.values.T
-#         y_train = y_train.values.T
-#         y_test = y_test.values.T
-#         if group == 'train':
-#             name = 'skab-train'
-#             if normalize:
-#                 scaler.fit(X_train)
-#                 Y = scaler.transform(X_train)
-#             entity = Entity(Y=Y, name=entities_names[i], labels=y_train, verbose=verbose)
-#             entities.append(entity)
-#
-#         elif group == 'test':
-#             name = 'skab-test'
-#             if normalize:
-#                 scaler.fit(X_test)
-#                 Y = scaler.transform(X_test)
-#
-#             entity = Entity(Y=Y, name=entities_names[i], labels=y_test, verbose=verbose)
-#             entities.append(entity)
-#     skab = Dataset(entities=entities, name=name, verbose=verbose)
-#
-#     return skab
-#     pass
+def load_skab(group, datasets=None, downsampling=None, min_length=None, root_dir='./data',
+              normalize=True, verbose=True):
+    """
+    Load the SKAB dataset with chronological 80/20 train-test splits.
+
+    Consistent interface with load_anomaly_archive, but SKAB is multivariate.
+    Each CSV in SKAB contains multiple sensor channels plus 'anomaly' and 'changepoint' columns.
+
+    Parameters
+    ----------
+    group : str
+        'train' or 'test'
+    datasets : list[str], optional
+        Subset of SKAB entities to load (default = all)
+    downsampling : int, optional
+        Downsampling factor (max pooling over time windows)
+    min_length : int, optional
+        Minimum allowed sequence length after downsampling
+    root_dir : str
+        Root directory containing 'SKAB' folder
+    normalize : bool
+        Whether to apply MinMax scaling fitted on the training portion
+    verbose : bool
+        Print information while loading
+    """
+
+    import os
+    import numpy as np
+    import pandas as pd
+    from sklearn.preprocessing import MinMaxScaler
+
+    root_dir = f"{root_dir}/SKAB"
+    if not os.path.exists(root_dir):
+        raise FileNotFoundError(f"SKAB dataset not found in {root_dir}")
+
+    if verbose:
+        print("------------------------ Loading SKAB dataset -----------------------------")
+
+    # Collect all CSV files
+    all_files, all_names = [], []
+    for root, dirs, files in os.walk(root_dir):
+        for dir in dirs:
+            dir_path = os.path.join(root_dir, dir)
+            for file in os.listdir(dir_path):
+                if file.endswith(".csv"):
+                    entity_name = f"{dir}-{file.split('.')[0]}"
+                    all_files.append(os.path.join(dir_path, file))
+                    all_names.append(entity_name)
+
+    if datasets is None:
+        datasets = all_names
+    if verbose:
+        print(f"Number of datasets to load: {len(datasets)}")
+
+    entities = []
+
+    for file_path, entity_name in zip(all_files, all_names):
+        # ------------------- Load CSV -------------------
+        df = pd.read_csv(file_path, sep=";", parse_dates=True, index_col=0)
+        if "anomaly" not in df.columns:
+            raise ValueError(f"'anomaly' column missing in {file_path}")
+
+        X = df.drop(["anomaly", "changepoint"], axis=1, errors="ignore")
+        y = df["anomaly"].values
+
+        n_time, n_features = X.shape
+        split_idx = int(0.8 * n_time)
+
+        meta_data = {
+            "name": entity_name,
+            "train_end": split_idx,
+            "test_start": split_idx,
+            "n_features": n_features,
+            "n_time": n_time,
+        }
+        if verbose:
+            print(f"Entity meta-data: {meta_data}")
+
+        # ------------------- Normalization -------------------
+        if normalize:
+            scaler = MinMaxScaler()
+            scaler.fit(X.iloc[:split_idx])
+            X = scaler.transform(X)
+        else:
+            X = X.values
+
+        Y = X.T  # (n_features, n_time)
+
+        # ------------------- Skip too-short sequences -------------------
+        downsampling_entity = downsampling
+        if (downsampling_entity is not None) and (min_length is not None):
+            if (split_idx // downsampling_entity < min_length) or ((n_time - split_idx) // downsampling_entity < min_length):
+                downsampling_entity = None
+
+        # ------------------- Split by group -------------------
+        if group == "train":
+            name = f"{entity_name}-train"
+            Y_split = Y[:, :split_idx]
+            labels = y[:split_idx]
+        elif group == "test":
+            name = f"{entity_name}-test"
+            Y_split = Y[:, split_idx:]
+            labels = y[split_idx:]
+        else:
+            raise ValueError("group must be either 'train' or 'test'")
+
+        # ------------------- Downsampling -------------------
+        if downsampling_entity is not None:
+            n_features, n_t = Y_split.shape
+            right_padding = downsampling_entity - (n_t % downsampling_entity)
+            if right_padding != downsampling_entity:  # avoid full padding if already divisible
+                Y_split = np.pad(Y_split, ((0, 0), (0, right_padding)))
+                labels = np.pad(labels, (0, right_padding))
+
+            # Max pooling over each window
+            Y_split = Y_split.reshape(n_features, -1, downsampling_entity).max(axis=2)
+            labels = labels.reshape(-1, downsampling_entity).max(axis=1)
+
+        # ------------------- Create Entity -------------------
+        entity = Entity(
+            Y=Y_split,
+            name=entity_name,
+            labels=labels[None, :],
+            verbose=verbose
+        )
+        entities.append(entity)
+
+    name = f"skab-{group}"
+    skab = Dataset(entities=entities, name=name, verbose=verbose)
+
+    if verbose:
+        print(skab)
+
+    return skab
 
 
 # def load_apple(group, channels=None, downsampling=None, root_dir='./data', normalize=True, verbose=True):

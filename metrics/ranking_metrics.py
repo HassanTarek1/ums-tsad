@@ -78,8 +78,8 @@ def rank_by_metrics(predictions: dict, n_splits=100, sliding_window=None) -> pd.
     METRICS['PR-AUC'] = {}
     METRICS['Best F-1'] = {}
     METRICS['VUS'] = {}
-    METRICS['MutualInformation'] = {}
-    METRICS['CDI'] = {}
+    # METRICS['MutualInformation'] = {}  # Disabled - computationally expensive
+    # METRICS['CDI'] = {}  # Disabled - computationally expensive
     for model_name in MODEL_NAMES:
         labels = predictions[model_name]['anomaly_labels'].squeeze()
         scores = predictions[model_name]['entity_scores'].squeeze()
@@ -96,19 +96,19 @@ def rank_by_metrics(predictions: dict, n_splits=100, sliding_window=None) -> pd.
         METRICS['Best F-1'][model_name] = f1
         METRICS['VUS'][model_name] = evaluation_scores['VUS_ROC']
         # METRICS['best_spd_delay'][model_name]=best_spd_delay
-        mi_score = calculate_mutual_information(Y=labels, Y_scores=scores, normalize=True)
-        METRICS['MutualInformation'][model_name] = mi_score
-        distance_matrix, normal_distances, abnormal_distances, normal_centroids, abnormal_centroids = compute_distances_and_centroids(
-            scores, n_clusters=2)
-
-        # Calculate individual metrics
-        rc_score = calculate_rc(distance_matrix)
-        nc_score = calculate_nc(normal_distances, abnormal_distances)
-        na_score = calculate_na(normal_centroids, abnormal_centroids)
-
-        # Calculate Composite Difficulty Index
-        cdi_score = calculate_cdi(rc_score, nc_score, na_score)
-        METRICS['CDI'][model_name] = cdi_score
+        
+        # Disabled: Computationally expensive metrics
+        # mi_score = calculate_mutual_information(Y=labels, Y_scores=scores, normalize=True)
+        # METRICS['MutualInformation'][model_name] = mi_score
+        # distance_matrix, normal_distances, abnormal_distances, normal_centroids, abnormal_centroids = compute_distances_and_centroids(
+        #     scores, n_clusters=2)
+        # # Calculate individual metrics
+        # rc_score = calculate_rc(distance_matrix)
+        # nc_score = calculate_nc(normal_distances, abnormal_distances)
+        # na_score = calculate_na(normal_centroids, abnormal_centroids)
+        # # Calculate Composite Difficulty Index
+        # cdi_score = calculate_cdi(rc_score, nc_score, na_score)
+        # METRICS['CDI'][model_name] = cdi_score
 
     return pd.DataFrame(METRICS)
 

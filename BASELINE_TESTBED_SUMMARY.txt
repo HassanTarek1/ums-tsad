@@ -1,0 +1,341 @@
+================================================================================
+UMS-TSAD BASELINE TESTBED - SUMMARY DOCUMENT
+================================================================================
+
+Project: RAMSeS Framework Baseline Comparison
+Date: December 29, 2025
+Author: Research Team
+
+================================================================================
+OVERVIEW
+================================================================================
+
+This document summarizes the baseline testbed setup for comparing the UMS-TSAD
+framework (original paper implementation) with RAMSeS. The goal is to measure
+the end-to-end computational overhead of both frameworks on the same datasets.
+
+================================================================================
+FRAMEWORKS COMPARISON
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ UMS-TSAD BASELINE (3 Criteria)                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ 1. Centrality-based ranking                                                 │
+│    - Uses k-nearest neighbors in anomaly score space                        │
+│    - Computes Kendall's Tau distance between model rankings                 │
+│    - Selects models close to consensus                                      │
+│                                                                              │
+│ 2. Synthetic anomaly injection                                              │
+│    - Injects 4 anomaly types: extremum, shift, trend, variance             │
+│    - Evaluates models on synthetic anomalies                                │
+│    - Uses PR-AUC and F1 as evaluation metrics                              │
+│                                                                              │
+│ 3. Forecasting metrics                                                      │
+│    - MAE, MSE, SMAPE, MAPE, Gaussian likelihood                            │
+│    - Ranks models by prediction accuracy                                    │
+│    - Assumes good forecasters are good detectors                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ RAMSeS (Enhanced Multi-Module Framework)                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ENSEMBLE BRANCH:                                                            │
+│ - Genetic Algorithm for optimal detector subsets                           │
+│ - Meta-learner stacking (RF/LR/GBM/SVM)                                    │
+│                                                                              │
+│ SINGLE MODEL BRANCH:                                                        │
+│ - Linear Thompson Sampling with ε-greedy exploration                       │
+│ - GAN-based robustness testing (borderline synthetic anomalies)            │
+│ - Off-by-threshold sensitivity tests                                        │
+│ - Monte Carlo noise stress-tests                                            │
+│ - Markov-chain rank aggregator                                              │
+│                                                                              │
+│ RESULT: Two deployable outputs                                              │
+│ 1. Optimized ensemble                                                       │
+│ 2. Top-ranked robust single model                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+KEY DIFFERENCES
+================================================================================
+
+┌──────────────────────────┬─────────────────┬──────────────────────────────┐
+│ Feature                  │ UMS-TSAD        │ RAMSeS                       │
+├──────────────────────────┼─────────────────┼──────────────────────────────┤
+│ Model Evaluation         │ ✓               │ ✓                            │
+│ Centrality Ranking       │ ✓               │ ✗                            │
+│ Synthetic Anomalies      │ ✓ (basic)       │ ✓ (GAN-enhanced)             │
+│ Forecasting Metrics      │ ✓               │ ✗                            │
+│ Ensemble GA              │ ✗               │ ✓                            │
+│ Thompson Sampling        │ ✗               │ ✓                            │
+│ Robustness Tests         │ ✗               │ ✓                            │
+│ Borderline Tests         │ ✗               │ ✓                            │
+│ Monte Carlo Tests        │ ✗               │ ✓                            │
+│ Rank Aggregation         │ ✗               │ ✓ (Markov-chain)             │
+│ Online Learning          │ ✗               │ ✓ (sliding windows)          │
+│ Multiple Outputs         │ ✗ (single best) │ ✓ (ensemble + single)        │
+└──────────────────────────┴─────────────────┴──────────────────────────────┘
+
+================================================================================
+FILES CREATED
+================================================================================
+
+/home/maxoud/local-storage/projects/ums-tsad/
+├── run_testbed_baseline.py       # Main testbed runner (Python)
+├── run_baseline_testbed.sh       # Bash wrapper for easy execution
+├── compare_baseline_ramses.py    # Comparison/analysis tool
+├── test_testbed_setup.py         # Setup verification script
+├── TESTBED_BASELINE_README.md    # Detailed instructions
+└── BASELINE_TESTBED_SUMMARY.txt  # This file
+
+================================================================================
+USAGE INSTRUCTIONS
+================================================================================
+
+1. VERIFY SETUP
+   ------------
+   cd /home/maxoud/local-storage/projects/ums-tsad
+   python3 test_testbed_setup.py
+   
+   ✓ All checks passed!
+
+2. CONFIGURE PATHS (if needed)
+   ---------------------------
+   Edit run_baseline_testbed.sh and update:
+   - RAMSES_DIR (default: /home/maxoud/local-storage/projects/RAMSeS)
+   - DATASET_BASE_PATH (point to Mononito/datasets)
+   - TRAINED_MODELS_BASE (point to trained_models directory)
+
+3. RUN BASELINE TESTBED
+   --------------------
+   # Quick test (10 datasets)
+   ./run_baseline_testbed.sh ucr_sample
+   
+   # Full UCR Anomaly Archive (250 datasets)
+   ./run_baseline_testbed.sh ucr_full
+   
+   # SMD dataset
+   ./run_baseline_testbed.sh smd
+   
+   # SKAB dataset
+   ./run_baseline_testbed.sh skab
+
+4. ANALYZE RESULTS
+   ---------------
+   Results are saved to: ums-tsad/testbed_results/<dataset>_<timestamp>/
+   
+   Files generated:
+   - detailed_results.json  # Complete results with all metrics
+   - results.csv           # Tabular format for analysis
+   - summary_report.txt    # Human-readable summary
+   - testbed_run.log      # Execution log
+
+5. COMPARE WITH RAMSES
+   -------------------
+   python3 compare_baseline_ramses.py \
+       --baseline_dir testbed_results/ucr_sample_<timestamp> \
+       --ramses_dir /path/to/ramses/testbed_results/<timestamp> \
+       --output_dir comparison_results
+
+   Generates:
+   - comparison_report.txt
+   - overhead_comparison.png
+   - performance_comparison.png
+   - comparison_data.json
+
+================================================================================
+EXPECTED RESULTS
+================================================================================
+
+COMPUTATIONAL OVERHEAD (per dataset)
+------------------------------------
+UMS-TSAD Baseline:  ~5-15 seconds
+RAMSeS:            ~30-90 seconds
+
+Overhead Factor: 2-6x
+Reason: RAMSeS includes additional robustness tests, GA optimization,
+        Thompson Sampling, and rank aggregation.
+
+PERFORMANCE METRICS
+-------------------
+Expected to be comparable or RAMSeS slightly better due to:
+- More robust model selection
+- Ensemble option for improved accuracy
+- Stress-testing under noise and borderline conditions
+
+MEMORY USAGE
+------------
+Both frameworks load models and evaluate on time series:
+Expected: 500-2000 MB peak memory per dataset
+(depends on dataset size and number of models)
+
+================================================================================
+TESTBED DATASETS
+================================================================================
+
+Available testbed lists:
+┌────────────────────────────────┬──────────────┬─────────────────────────────┐
+│ File                           │ Count        │ Description                 │
+├────────────────────────────────┼──────────────┼─────────────────────────────┤
+│ ucr_sample_10.csv              │ 9 datasets   │ Small sample for testing    │
+│ test_u_ucr_anomaly_archive.csv │ 250 datasets │ Full UCR Anomaly Archive    │
+│ test_m_smd.csv                 │ 28 datasets  │ Server Machine Dataset      │
+│ test_m_skab.csv                │ 20 datasets  │ SKAB anomaly benchmark      │
+│ test_smd_small.csv             │ 2 datasets   │ SMD subset                  │
+│ test_single.csv                │ 3 datasets   │ Single test                 │
+└────────────────────────────────┴──────────────┴─────────────────────────────┘
+
+================================================================================
+COMPUTATIONAL OVERHEAD BREAKDOWN
+================================================================================
+
+UMS-TSAD Baseline Stages:
+1. Initialization          (~1s)
+   - Load data
+   - Initialize RankModels object
+   
+2. Model Evaluation        (~3-10s)
+   - Load trained models
+   - Evaluate on test data
+   - Evaluate with synthetic anomalies
+   - Compute forecasting metrics
+   
+3. Model Ranking           (~1-2s)
+   - Rank by centrality
+   - Rank by synthetic anomaly performance
+   - Rank by forecasting metrics
+   - Aggregate rankings
+
+Total: ~5-15s per dataset
+
+RAMSeS Stages (for comparison):
+1. Data Loading            (~1s)
+2. Model Loading           (~2s)
+3. Ensemble GA             (~5-15s)
+4. Thompson Sampling       (~5-10s)
+5. GAN Robustness          (~5-15s)
+6. Borderline Tests        (~5-10s)
+7. Monte Carlo             (~5-15s)
+8. Rank Aggregation        (~2-5s)
+9. Final Decision          (~1s)
+
+Total: ~30-90s per dataset
+
+================================================================================
+METRICS COLLECTED
+================================================================================
+
+COMPUTATIONAL METRICS:
+- Initialization time (seconds)
+- Model evaluation time (seconds)
+- Model ranking time (seconds)
+- End-to-end time (seconds)
+- Peak memory usage (MB)
+- Average memory usage (MB)
+
+PERFORMANCE METRICS:
+- Best model (by PR-AUC)
+- Best model (by F1)
+- PR-AUC score
+- F1 score
+- VUS (Volume Under Surface) score
+- Mutual Information score
+- CDI (Composite Difficulty Index)
+
+MODEL SELECTION CRITERIA:
+- Centrality scores (k=2,4,6 neighbors)
+- Synthetic anomaly scores (4 types)
+- Forecasting metrics (MAE, MSE, SMAPE, MAPE, likelihood)
+
+================================================================================
+COMPARISON METRICS
+================================================================================
+
+When comparing UMS-TSAD vs RAMSeS, we evaluate:
+
+1. COMPUTATIONAL EFFICIENCY
+   - Overhead factor (RAMSeS time / UMS-TSAD time)
+   - Overhead percentage
+   - Absolute time difference
+
+2. DETECTION PERFORMANCE
+   - F1 score improvement/degradation
+   - PR-AUC improvement/degradation
+   - Statistical significance of differences
+
+3. COST-BENEFIT ANALYSIS
+   - Is the additional computational cost justified?
+   - Does RAMSeS provide better robustness?
+   - When is each framework more appropriate?
+
+================================================================================
+RESEARCH QUESTIONS
+================================================================================
+
+This baseline comparison helps answer:
+
+Q1: What is the computational overhead of RAMSeS compared to the original
+    3-criteria approach?
+
+Q2: Does the additional overhead translate to improved detection performance?
+
+Q3: Which components of RAMSeS contribute most to overhead?
+
+Q4: Is the overhead consistent across different dataset domains?
+
+Q5: What is the cost-benefit tradeoff of additional robustness testing?
+
+================================================================================
+CITATION
+================================================================================
+
+UMS-TSAD Original Paper:
+  Goswami, M., Challu, C., Callot, L., Minorics, L., & Kan, A. (2023).
+  Unsupervised Model Selection for Time-series Anomaly Detection.
+  arXiv:2210.01078
+
+RAMSeS Framework:
+  [Your paper details here]
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+1. ✓ Setup verified - all components ready
+2. ⏳ Run baseline testbed on sample datasets (./run_baseline_testbed.sh ucr_sample)
+3. ⏳ Verify results look reasonable
+4. ⏳ Run on full testbed or specific domains
+5. ⏳ Run RAMSeS on same testbed
+6. ⏳ Use comparison tool to analyze results
+7. ⏳ Include in paper/report with analysis
+
+================================================================================
+SUPPORT & TROUBLESHOOTING
+================================================================================
+
+See TESTBED_BASELINE_README.md for:
+- Detailed usage instructions
+- Troubleshooting common issues
+- Understanding output files
+- Advanced configuration options
+
+Quick tips:
+- Start with ucr_sample (9 datasets) to test
+- Check paths in run_baseline_testbed.sh
+- Ensure trained models exist for datasets
+- Monitor memory usage for large testbeds
+
+================================================================================
+STATUS: READY TO RUN
+================================================================================
+
+All setup checks passed. You can now run the baseline testbed.
+
+Recommended first run:
+  cd /home/maxoud/local-storage/projects/ums-tsad
+  ./run_baseline_testbed.sh ucr_sample
+
+This will process 9 UCR datasets and generate baseline results in ~1-2 minutes.
+
+================================================================================

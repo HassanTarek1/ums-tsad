@@ -221,7 +221,7 @@ class Stat:
                     calculated_AR = AR(x_as_list)
                     calculated_ar_params[k] = calculated_AR.fit(maxlag=k, solver="mle").params
                 except (LinAlgError, ValueError):
-                    calculated_ar_params[k] = [np.NaN] * k
+                    calculated_ar_params[k] = [np.nan] * k
 
             mod = calculated_ar_params[k]
 
@@ -231,7 +231,7 @@ class Stat:
                 except IndexError:
                     res[column_name] = 0
             else:
-                res[column_name] = np.NaN
+                res[column_name] = np.nan
 
         L = [(key, value) for key, value in res.items()]
         L0 = []
@@ -278,7 +278,7 @@ class Stat:
         # Return the normalized unbiased covariance
         v = np.var(x)
         if np.isclose(v, 0):
-            return np.NaN
+            return np.nan
         else:
             return sum_product / ((len(x) - lag) * v)
     def _into_subchunks(self, x, subchunk_length, every_n=1):

@@ -1,0 +1,4 @@
+file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score,time_1_initialization
+001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt,anomaly_archive,False,'extremum',699.53125,698.140625,,,,,1.0070741176605225
+002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900.txt,anomaly_archive,False,'extremum',869.6875,868.8046875,,,,,1.2794010639190674
+003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900.txt,anomaly_archive,False,'extremum',919.07421875,918.50390625,,,,,0.7781224250793457

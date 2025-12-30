@@ -1,0 +1,41 @@
+[
+  {
+    "file_name": "001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620",
+    "success": false,
+    "error": "'extremum'",
+    "timing": {
+      "1_initialization": 1.0070741176605225
+    },
+    "memory_peak_mb": 699.53125,
+    "memory_avg_mb": 698.140625
+  },
+  {
+    "file_name": "002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900",
+    "success": false,
+    "error": "'extremum'",
+    "timing": {
+      "1_initialization": 1.2794010639190674
+    },
+    "memory_peak_mb": 869.6875,
+    "memory_avg_mb": 868.8046875
+  },
+  {
+    "file_name": "003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900",
+    "success": false,
+    "error": "'extremum'",
+    "timing": {
+      "1_initialization": 0.7781224250793457
+    },
+    "memory_peak_mb": 919.07421875,
+    "memory_avg_mb": 918.50390625
+  }
+]

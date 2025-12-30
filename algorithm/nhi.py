@@ -1,4 +1,3 @@
-
 from oats.models import NHiTSModel
 from algorithm.base_model import PyMADModel
 import torch as t

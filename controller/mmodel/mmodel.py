@@ -24,6 +24,8 @@ def train():
     logger.info(f'request.method is {request.method}')
     if request.method == 'POST':
         dataset_selection = request.form.getlist('dataset_selection')[0]
+        if dataset_selection == 'ServerMachineDataset':
+            dataset_selection = 'smd'
         dataset_entity_list = request.form.getlist('dataset_entity_selection')
         algorithm_list = request.form.getlist('algorithm_option')
         logger.info(f'dataset_selection is {dataset_selection}\ndataset_entity_list is {dataset_entity_list}\nalgorithm_list is {algorithm_list}')

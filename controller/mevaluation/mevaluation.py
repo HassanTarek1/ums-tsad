@@ -81,6 +81,8 @@ def search_img():
     # request from ajax
     if request.method == 'POST':
         dataset_type = request.form.get('dataset_type')
+        if dataset_type == 'ServerMachineDataset':
+            dataset_type = 'smd'
         dataset_entity = request.form.get('dataset_entity')
         abn_types = request.form.get('abn_types')
 
@@ -157,6 +159,8 @@ def evaluate_model():
     if request.method == 'GET':
 
         dataset_type = request.args.get('dataset_type')
+        if dataset_type == 'ServerMachineDataset':
+            dataset_type = 'smd'
         dataset_entity = request.args.get('dataset_entity')
         logger.info(
             f'evaluateModel dataset_type is {dataset_type},dataset_entity is {dataset_entity}')
@@ -198,6 +202,8 @@ def revaluate_model():
     executor = ProcessPoolExecutor(1)
     if request.method == 'POST':
         dataset_type = request.form.get('dataset_type')
+        if dataset_type == 'ServerMachineDataset':
+            dataset_type = 'smd'
         dataset_entity = request.form.get('dataset_entity')
         logger.info(
             f'revaluateModel dataset_type is {dataset_type},dataset_entity is {dataset_entity}')

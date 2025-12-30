@@ -1,0 +1,4 @@
+file_name,domain_name
+004_UCR_Anomaly_DISTORTEDBIDMC1_2500_5400_5600.txt,anomaly_archive
+027_UCR_Anomaly_DISTORTEDInternalBleeding16_1200_4187_4199.txt,anomaly_archive
+032_UCR_Anomaly_DISTORTEDInternalBleeding4_1000_4675_5033.txt,anomaly_archive

@@ -10,10 +10,19 @@ import os
 from tqdm import tqdm
 import numpy as np
 import torch as t
+import sys
+
+# Fix for loading models trained with 'Algorithms' module (capital A)
+# Add parent directory to path so 'Algorithms' can be resolved
+import algorithm as Algorithms
+sys.modules['Algorithms'] = Algorithms
 
 from datasets.load import load_data
-from utils.model_selection_utils import evaluate_model, evaluate_model_synthetic_anomalies, get_eval_batchsizes, rank_models
-from metrics.ranking_metrics import rank_by_centrality, rank_by_synthetic_anomlies, rank_by_forecasting_metrics, rank_by_metrics
+from utils.model_selection_utils import evaluate_model, evaluate_model_synthetic_anomalies, get_eval_batchsizes, \
+    rank_models
+from metrics.ranking_metrics import rank_by_centrality, rank_by_synthetic_anomlies, rank_by_forecasting_metrics, \
+    rank_by_metrics, rank_by_praucs, rank_by_max_F1
+
 
 class RankModels(object):
     # NOTE: trained_model_path, downsampling, min_length, root_dir and normalize
@@ -22,15 +31,14 @@ class RankModels(object):
             self,
             dataset: str = 'anomaly_archive',
             entity: str = '128_UCR_Anomaly_GP711MarkerLFM5z2',
-            model_name_list = [],
-            inject_abn_list:list=[],
+            model_name_list=[],
+            inject_abn_list: list = [],
             trained_model_path: str = r'/home/scratch/mgoswami/trained_models/',
             downsampling: int = 10,
             min_length: int = 256,
             root_dir: str = r'/home/scratch/mgoswami/datasets/',
             normalize: bool = True,
             verbose: bool = False):
-
 
         self.inject_abn_list = inject_abn_list
 
@@ -109,11 +117,12 @@ class RankModels(object):
         _ = self.get_random_syn_anomaly_params()
 
         for model_name in tqdm(self.MODEL_NAMES):
-            print(f'\n ------------Evaluating {model_name} ---------------\n')
             with open(
                     os.path.join(self.TRAINED_MODELS_PATH,
                                  f'{model_name}.pth'), 'rb') as f:
-                model = t.load(f)
+                # PyTorch 2.6+ changed default to weights_only=True
+                # Set to False to load older model files (trusted source)
+                model = t.load(f, weights_only=False)
             model.eval()  # Set model in evaluation mode
 
             eval_batch_size = get_eval_batchsizes(model_name=model_name)
@@ -128,25 +137,26 @@ class RankModels(object):
 
             self.synthetic_predictions[
                 model_name] = evaluate_model_synthetic_anomalies(
-                    data=self.test_data
-                    if split == 'test' else self.train_data,
-                    model=model,
-                    model_name=model_name,
-                    padding_type='right',
-                    eval_batch_size=eval_batch_size,
-                    n_repeats=self.n_repeats,
-                    random_states=self.random_states,
-                    max_window_size=128,
-                    min_window_size=8,
-                    inject_abn_list= self.inject_abn_list
-                    )
+                data=self.test_data
+                if split == 'test' else self.train_data,
+                model=model,
+                model_name=model_name,
+                padding_type='right',
+                eval_batch_size=eval_batch_size,
+                n_repeats=self.n_repeats,
+                random_states=self.random_states,
+                max_window_size=128,
+                min_window_size=8,
+                inject_abn_list=self.inject_abn_list
+            )
 
         # Now use to predictions to rank the model
-        # self.models_prauc = rank_by_praucs(self.predictions)
-        # self.models_f1 = rank_by_max_F1(self.predictions, n_splits=n_splits)
+        self.models_prauc = rank_by_praucs(self.predictions)
+        self.models_f1 = rank_by_max_F1(self.predictions, n_splits=n_splits)
         # self.models_prauc_f1 = rank_by_prauc_f1(self.predictions, n_splits=n_splits)
-        
-        self.models_evaluation_metrics = rank_by_metrics(self.predictions,n_splits=n_splits, sliding_window=sliding_window)
+
+        self.models_evaluation_metrics = rank_by_metrics(self.predictions, n_splits=n_splits,
+                                                         sliding_window=sliding_window)
         self.models_forecasting_metrics = rank_by_forecasting_metrics(
             self.predictions)
         self.models_centrality = rank_by_centrality(self.predictions,
@@ -156,17 +166,15 @@ class RankModels(object):
             n_splits=n_splits)
 
         self.models_performance_matrix = pd.concat([
-            self.models_evaluation_metrics, self.models_forecasting_metrics, self.models_centrality, self.models_synthetic_anomlies
+            self.models_evaluation_metrics, self.models_forecasting_metrics,
+            self.models_centrality, self.models_synthetic_anomlies
         ],
-                                                   axis=1)
-        # self.models_forecasting_metrics,
-        #             self.models_centrality,
-        # self.models_evaluation_metrics,
-        # ,self.models_synthetic_anomlies
+            axis=1)
+
         return self.models_performance_matrix
 
-    def rank_models(self) -> Tuple[np.ndarray, np.ndarray]:
+    def rank_models(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         assert self.models_performance_matrix is not None, "Call evaluate_models() to evaluate algorithm first!"
-        self.ranks_by_metrics, self.rank_prauc, self.rank_f1 = rank_models(
+        self.ranks_by_metrics, self.rank_prauc, self.rank_f1, self.rank_vus = rank_models(
             self.models_performance_matrix)
-        return self.ranks_by_metrics, self.rank_prauc, self.rank_f1
+        return self.ranks_by_metrics, self.rank_prauc, self.rank_f1, self.rank_vus

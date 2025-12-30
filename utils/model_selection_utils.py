@@ -83,39 +83,43 @@ def evaluate_model(data: Union[Dataset, Entity],
                    model_name: str,
                    padding_type: str = 'right',
                    eval_batch_size: int = 128) -> dict:
+
     """Compute observations necessary to evaluate a model on a given dataset.
 
-    Description
-    -----------
-    This function computes predicted anomaly scores of an entity (entity scores), 
-    Y_hat (the predicted values of the entity) and Y_sigma. Y_sigma is NaN in most
-    cases except in the case of LSTM-VAE. These observations are useful for two
-    classes of metrics, names forecasting error and cetrality. 
+        Description
+        -----------
+        This function computes predicted anomaly scores of an entity (entity scores),
+        Y_hat (the predicted values of the entity) and Y_sigma. Y_sigma is NaN in most
+        cases except in the case of LSTM-VAE. These observations are useful for two
+        classes of metrics, names forecasting error and cetrality.
 
-    Parameters
-    ----------
-    data:Union[Dataset, Entity]
-        Dataset to evaluate the model on.   
-    
-    model:PyMADModel
-        Model
-    
-    model_name:str
-        Name of the model. 
+        Parameters
+        ----------
+        data:Union[Dataset, Entity]
+            Dataset to evaluate the model on.
 
-    padding_type:str='right', 
-        Padding type. By default, 'right'.
-    
-    eval_batch_size:int=32
-        Evaluation batch size. By default, 32.
+        model:PyMADModel
+            Model
 
-    Returns
-    ---------
-    PREDICTIONS: dict
-        The prediction dictionary comprises of entity_scores, Y, Y_hat, Y_sigma, mask and anomaly_labels.
-    """
+        model_name:str
+            Name of the model.
+
+        padding_type:str='right',
+            Padding type. By default, 'right'.
+
+        eval_batch_size:int=32
+            Evaluation batch size. By default, 32.
+
+        Returns
+        ---------
+        PREDICTIONS: dict
+            The prediction dictionary comprises of entity_scores, Y, Y_hat, Y_sigma, mask and anomaly_labels.
+        """
+
+    print(f"Evaluating model: {model_name}")
 
     anomaly_labels = data.entities[0].labels
+    print(f"Loaded anomaly labels. Length: {len(anomaly_labels)}")
 
     dataloader = Loader(dataset=data,
                         batch_size=eval_batch_size,
@@ -127,34 +131,44 @@ def evaluate_model(data: Union[Dataset, Entity],
                         verbose=False,
                         mask_position='None',
                         n_masked_timesteps=0)
+    print(f"Created dataloader with padding size {dataloader.padding_size} and padding type '{padding_type}'")
 
     if model.window_size == -1:
         window_size = data.entities[0].Y.shape[1]
+        print(f"Model has dynamic window size. Set window size to {window_size}")
     else:
         window_size = model.window_size
+        print(f"Model has fixed window size: {window_size}")
 
     entity_scores = t.zeros((len(dataloader), data.n_features, window_size))
+    print(f"Initialized entity_scores tensor of shape {entity_scores.shape}")
 
     n_features = data.n_features
-    if 'DGHL' in model_name and (
-            data.entities[0].X is not None):  # DGHL also considers covariates
-        n_features = n_features + data.entities[0].X.shape[0]
+    if 'DGHL' in str(model_name) and data.entities[0].X is not None:
+        n_features += data.entities[0].X.shape[0]
+        print(f"Detected DGHL model with covariates. Updated n_features to {n_features}")
+    else:
+        print(f"n_features: {n_features}")
 
     Y = np.zeros((len(dataloader), n_features, window_size))
     Y_hat = np.zeros((len(dataloader), n_features, window_size))
     Y_sigma = np.zeros((len(dataloader), n_features, window_size))
     mask = np.zeros((len(dataloader), n_features, window_size))
+    print(f"Initialized Y, Y_hat, Y_sigma, mask arrays with shape {(len(dataloader), n_features, window_size)}")
 
     step = 0
-    for batch in dataloader:
+    for batch_idx, batch in enumerate(dataloader):
         batch_size, n_features, window_size = batch['Y'].shape
-        # Entity anomaly scores to compute PR-AUC and Centrality
-        batch_anomaly_score = model.window_anomaly_score(input=batch,
-                                                         return_detail=True)
+        print(f"Processing batch {batch_idx + 1}, batch size: {batch_size}")
+
+        batch_anomaly_score = model.window_anomaly_score(input=batch, return_detail=True)
+        print(f"Computed window anomaly score for batch {batch_idx + 1}")
+
         entity_scores[step:(step + batch_size), :, :] = batch_anomaly_score
 
-        # Forecasting Error
         Y_b, Y_hat_b, Y_sigma_b, mask_b = predict(batch, model_name, model)
+        print(f"Predicted Y, Y_hat, Y_sigma, mask for batch {batch_idx + 1}")
+
         Y[step:(step + batch_size), :, :] = Y_b
         Y_hat[step:(step + batch_size), :, :] = Y_hat_b
         Y_sigma[step:(step + batch_size), :, :] = Y_sigma_b
@@ -162,36 +176,52 @@ def evaluate_model(data: Union[Dataset, Entity],
 
         step += batch_size
 
-    # Final Anomaly Scores and forecasts
-    entity_scores = model.final_anomaly_score(
-        input=entity_scores, return_detail=False
-    )  # return_detail = False averages the anomaly scores across features.
+    print("Completed all batches")
+
+    entity_scores = model.final_anomaly_score(input=entity_scores, return_detail=False)
+    print("Computed final anomaly scores")
+
     entity_scores = entity_scores.detach().cpu().numpy()
+    print("Converted entity_scores to NumPy array")
 
     Y_hat = de_unfold(windows=Y_hat, window_step=model.window_step)
-    Y = de_unfold(windows=Y, window_step=model.window_step)
-    Y_sigma = de_unfold(windows=Y_sigma, window_step=model.window_step)
-    mask = de_unfold(windows=mask, window_step=model.window_step)
+    print("Unfolded Y_hat")
 
-    # Remove extra padding from Anomaly Scores and forecasts
-    entity_scores = _adjust_scores_with_padding(
-        scores=entity_scores,
-        padding_size=dataloader.padding_size,
-        padding_type=padding_type)
+    Y = de_unfold(windows=Y, window_step=model.window_step)
+    print("Unfolded Y")
+
+    Y_sigma = de_unfold(windows=Y_sigma, window_step=model.window_step)
+    print("Unfolded Y_sigma")
+
+    mask = de_unfold(windows=mask, window_step=model.window_step)
+    print("Unfolded mask")
+
+    entity_scores = _adjust_scores_with_padding(scores=entity_scores,
+                                                padding_size=dataloader.padding_size,
+                                                padding_type=padding_type)
+    print("Adjusted entity_scores for padding")
 
     Y_hat = _adjust_scores_with_padding(scores=Y_hat,
                                         padding_size=dataloader.padding_size,
                                         padding_type=padding_type)
+    print("Adjusted Y_hat for padding")
+
     Y = _adjust_scores_with_padding(scores=Y,
                                     padding_size=dataloader.padding_size,
                                     padding_type=padding_type)
+    print("Adjusted Y for padding")
+
     Y_sigma = _adjust_scores_with_padding(scores=Y_sigma,
                                           padding_size=dataloader.padding_size,
                                           padding_type=padding_type)
+    print("Adjusted Y_sigma for padding")
+
     mask = _adjust_scores_with_padding(scores=mask,
                                        padding_size=dataloader.padding_size,
                                        padding_type=padding_type)
+    print("Adjusted mask for padding")
 
+    print("Evaluation complete. Returning prediction dictionary.")
     return {
         'entity_scores': entity_scores,
         'Y': Y,
@@ -392,9 +422,9 @@ def rank_models(
         models_performance_matrix: pd.DataFrame
 ) -> Tuple[np.ndarray, np.ndarray]:
     # If the value is lower for a model, the model is better
-    LOWER_BETTER = ['MAE', 'MSE', 'SMAPE', 'MAPE', 'CENTRALITY', 'best_spd_delay', 'CDI']
+    LOWER_BETTER = ['MAE', 'MSE', 'SMAPE', 'MAPE', 'CENTRALITY', 'best_spd_delay']  # Removed CDI
     # If the value is higher for a model, the model is better
-    HIGHER_BETTER = ['LIKELIHOOD', 'SYNTHETIC', 'PR-AUC', 'Best F-1', 'VUS', 'MutualInformation']
+    HIGHER_BETTER = ['LIKELIHOOD', 'SYNTHETIC', 'PR-AUC', 'Best F-1', 'VUS']  # Removed MutualInformation
 
     METRIC_NAMES = [i.split('_')[0] for i in models_performance_matrix.columns]
     SORT_DIRECTION = []
@@ -494,7 +524,7 @@ def _predict_base(batch, model):
     if isinstance(Y, t.Tensor): Y = Y.detach().cpu().numpy()
     if isinstance(Y_hat, t.Tensor): Y_hat = Y_hat.detach().cpu().numpy()
     if isinstance(mask, t.Tensor): mask = mask.detach().cpu().numpy()
-    Y_sigma = np.NaN * np.ones(batch['Y'].shape)
+    Y_sigma = np.nan * np.ones(batch['Y'].shape)
     return Y, Y_hat, Y_sigma, mask
 
 
@@ -557,7 +587,7 @@ def _predict_rnn(batch, model):
     Y_hat = Y_hat[None, :, :]
     mask = mask[None, :, :]
 
-    Y_sigma = np.NaN * np.ones(batch['Y'].shape)
+    Y_sigma = np.nan * np.ones(batch['Y'].shape)
     return Y, Y_hat, Y_sigma, mask
 
 

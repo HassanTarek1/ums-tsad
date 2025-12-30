@@ -1,0 +1,152 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    UMS-TSAD BASELINE TESTBED - QUICK REF                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📋 OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Run UMS-TSAD (3 criteria: centrality, synthetic anomalies, forecasting) over
+the RAMSeS testbed to measure computational overhead as baseline comparison.
+
+🎯 3 MODEL SELECTION CRITERIA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1️⃣  Centrality (k-NN in score space)
+2️⃣  Synthetic Anomaly Injection (4 types)
+3️⃣  Forecasting Metrics (MAE, MSE, SMAPE, etc.)
+
+🚀 QUICK START
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 1. Verify setup
+cd /home/maxoud/local-storage/projects/ums-tsad
+python3 test_testbed_setup.py
+
+# 2. Run baseline (recommended for testing)
+./run_baseline_testbed.sh ucr_sample
+
+# 3. Check results
+ls -lh testbed_results/ucr_sample_*/
+
+# 4. Compare with RAMSeS
+python3 compare_baseline_ramses.py \
+    --baseline_dir testbed_results/ucr_sample_<timestamp> \
+    --ramses_dir /path/to/ramses_results
+
+🗂️ TESTBED OPTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ucr_sample    →  9 datasets (test run, ~1-2 min)
+ucr_full      →  250 datasets (full UCR, ~20-60 min)
+smd           →  28 datasets (Server Machine Dataset)
+skab          →  20 datasets (SKAB benchmark)
+
+📁 OUTPUT FILES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+testbed_results/<dataset>_<timestamp>/
+├── detailed_results.json    # Full results with all metrics
+├── results.csv              # Tabular data for analysis
+├── summary_report.txt       # Human-readable summary
+└── testbed_run.log         # Execution log
+
+⏱️ EXPECTED TIMING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Per Dataset:
+  UMS-TSAD Baseline: ~5-15 seconds
+  RAMSeS:           ~30-90 seconds
+  Overhead Factor:   2-6x
+
+📊 METRICS COLLECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Computational:
+  • Initialization time
+  • Model evaluation time
+  • Model ranking time
+  • End-to-end time
+  • Peak memory usage
+
+Performance:
+  • Best model (PR-AUC)
+  • Best model (F1)
+  • PR-AUC score
+  • F1 score
+  • VUS score
+
+🔧 MANUAL EXECUTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+python3 run_testbed_baseline.py \
+    --dataset_list /path/to/testbed/file_list/ucr_sample_10.csv \
+    --trained_model_path /path/to/trained_models \
+    --dataset_path /path/to/Mononito/datasets \
+    --output_dir my_results \
+    --downsampling 10 \
+    --min_length 256 \
+    --max_datasets 10  # Optional: limit for testing
+
+📈 COMPARISON TOOL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+python3 compare_baseline_ramses.py \
+    --baseline_dir <ums_tsad_results> \
+    --ramses_dir <ramses_results> \
+    --output_dir comparison_results
+
+Generates:
+  • comparison_report.txt       (detailed analysis)
+  • overhead_comparison.png     (timing plots)
+  • performance_comparison.png  (F1/PR-AUC plots)
+  • comparison_data.json        (structured data)
+
+🛠️ TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Issue: "Dataset list not found"
+Fix:   Check RAMSES_DIR path in run_baseline_testbed.sh
+
+Issue: "Trained models not found"
+Fix:   Update TRAINED_MODELS_BASE path, ensure models trained
+
+Issue: "Module not found"
+Fix:   Run from ums-tsad directory, check requirements.txt
+
+Issue: Dataset loading fails
+Fix:   Verify DATASET_BASE_PATH, check dataset structure
+
+📚 DOCUMENTATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TESTBED_BASELINE_README.md    →  Full instructions and details
+BASELINE_TESTBED_SUMMARY.txt  →  Comprehensive overview
+test_testbed_setup.py          →  Setup verification tool
+
+🎓 FRAMEWORK COMPARISON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+┌──────────────────────────┬─────────────┬──────────────────────────┐
+│ Feature                  │ UMS-TSAD    │ RAMSeS                   │
+├──────────────────────────┼─────────────┼──────────────────────────┤
+│ Centrality               │ ✓           │ ✗                        │
+│ Synthetic Anomalies      │ ✓           │ ✓ (GAN-enhanced)         │
+│ Forecasting              │ ✓           │ ✗                        │
+│ Ensemble GA              │ ✗           │ ✓                        │
+│ Thompson Sampling        │ ✗           │ ✓                        │
+│ Robustness Tests         │ ✗           │ ✓                        │
+│ Rank Aggregation         │ ✗           │ ✓                        │
+└──────────────────────────┴─────────────┴──────────────────────────┘
+
+✅ STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✓ All setup checks passed
+✓ Scripts created and executable
+✓ Dependencies verified
+✓ Ready to run baseline testbed
+
+🎯 RECOMMENDED WORKFLOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Test run:     ./run_baseline_testbed.sh ucr_sample
+2. Verify:       Check summary_report.txt
+3. Full run:     ./run_baseline_testbed.sh ucr_full
+4. RAMSeS run:   (run RAMSeS on same testbed)
+5. Compare:      python3 compare_baseline_ramses.py ...
+6. Analyze:      Review comparison_report.txt and plots
+
+📧 CITATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Goswami, M., et al. (2023). Unsupervised Model Selection for Time-series
+Anomaly Detection. arXiv:2210.01078
+
+═══════════════════════════════════════════════════════════════════════════════
+Last Updated: December 29, 2025
+═══════════════════════════════════════════════════════════════════════════════

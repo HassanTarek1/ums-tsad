@@ -1,0 +1,218 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    TEST UMS-TSAD ON 3 DATASETS - QUICK START                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 1: Verify Setup                                                        │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+cd /home/maxoud/local-storage/projects/ums-tsad
+python3 test_testbed_setup.py
+
+Expected: "✓ All checks passed! Ready to run baseline testbed."
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 2: Choose Your Method                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ METHOD A: Automated Script (Recommended for beginners)                    ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+./test_3_datasets.sh
+
+  ✓ Automatically configures all paths
+  ✓ Runs 3 datasets
+  ✓ Shows results summary
+  ✓ Easiest option!
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ METHOD B: Manual Python Command (More control)                            ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+python3 run_testbed_baseline.py \
+    --dataset_list test_3_datasets.csv \
+    --trained_model_path /home/maxoud/local-storage/projects/RAMSeS/Mononito/trained_models \
+    --dataset_path /home/maxoud/local-storage/projects/RAMSeS/Mononito/datasets \
+    --output_dir test_results_3datasets \
+    --downsampling 10 \
+    --min_length 256 \
+    --timeout 600
+
+  ✓ Full control over parameters
+  ✓ Easy to customize
+  ✓ Can redirect output
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ METHOD C: Use Existing Testbed List (Test any 3 datasets)                 ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+python3 run_testbed_baseline.py \
+    --dataset_list /home/maxoud/local-storage/projects/RAMSeS/testbed/file_list/test_single.csv \
+    --trained_model_path /home/maxoud/local-storage/projects/RAMSeS/Mononito/trained_models \
+    --dataset_path /home/maxoud/local-storage/projects/RAMSeS/Mononito/datasets \
+    --output_dir test_results_3datasets \
+    --max_datasets 3
+
+  ✓ Use existing RAMSeS testbed files
+  ✓ --max_datasets 3 limits to first 3
+  ✓ Test different dataset types
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 3: Monitor Progress                                                    │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+You'll see output like:
+
+════════════════════════════════════════════════════════════════════════════════
+Processing: 001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt (Domain: anomaly_archive)
+════════════════════════════════════════════════════════════════════════════════
+
+Stage 1: Initializing RankModels...
+Path to trained algorithm: /path/to/trained_models/anomaly_archive/001_UCR_Anomaly_...
+Models in the model set: ['LSTMVAE_1', 'DGHL_1', 'NN_1', 'NN_2', 'RNN_1', 'LOF_1', 'MD_1', 'CBLOF_1']
+Total number of algorithm in the model set: 8
+Initialization complete: 0.52s
+
+Stage 2: Evaluating models with 3 criteria...
+  ⟳ Centrality ranking (k-NN in score space)
+  ⟳ Synthetic anomaly injection (4 types)
+  ⟳ Forecasting metrics (MAE, MSE, SMAPE, etc.)
+Model evaluation complete: 8.34s
+
+Stage 3: Ranking models...
+Model ranking complete: 0.15s
+
+Best Model (PR-AUC): LSTMVAE_1 (Score: 0.8234)
+Best Model (F1): NN_1 (Score: 0.7891)
+
+End-to-End Time: 9.01s
+Peak Memory: 1245.67 MB
+
+Progress: 1/3 datasets processed
+
+[... datasets 2 and 3 ...]
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 4: Check Results                                                       │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Results are saved to: test_results_3datasets_<timestamp>/
+
+Files generated:
+  ✓ summary_report.txt      Human-readable summary
+  ✓ results.csv            Tabular data (Excel/pandas)
+  ✓ detailed_results.json  Complete metrics (JSON)
+
+Quick look at summary:
+  
+  cat test_results_3datasets_*/summary_report.txt | head -n 40
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ STEP 5: Verify Success                                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Check the CSV file:
+
+  column -t -s, test_results_3datasets_*/results.csv
+
+Expected columns:
+  - file_name: Dataset filename
+  - domain: Dataset domain
+  - success: True/False
+  - time_end_to_end: Total time in seconds
+  - best_f1_score: F1 score of best model
+  - best_prauc_score: PR-AUC of best model
+  - memory_peak_mb: Peak memory usage
+
+All "success" should be "True"!
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TYPICAL RESULTS (3 UCR Datasets)                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+OVERALL STATISTICS
+────────────────────────────────────────────────────────────────────────────────
+Total Datasets: 3
+Successful: 3
+Failed: 0
+
+COMPUTATIONAL OVERHEAD
+────────────────────────────────────────────────────────────────────────────────
+Average Initialization Time: 0.45s (±0.05s)
+Average Model Evaluation Time: 8.20s (±0.80s)
+Average Model Ranking Time: 0.18s (±0.02s)
+Average End-to-End Time: 8.83s (±0.85s)
+Total Computational Time: 26.49s
+
+MEMORY USAGE
+────────────────────────────────────────────────────────────────────────────────
+Average Peak Memory: 1234.56 MB
+Max Peak Memory: 1456.78 MB
+
+PERFORMANCE METRICS
+────────────────────────────────────────────────────────────────────────────────
+Average F1 Score: 0.7845 (±0.0234)
+Average PR-AUC: 0.8123 (±0.0312)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+❌ Error: "Dataset not found"
+   → Check: ls /path/to/datasets/anomaly_archive/001_UCR_Anomaly_*.txt
+   → Solution: Verify DATASET_PATH is correct
+
+❌ Error: "Trained models not found"
+   → Check: ls /path/to/trained_models/anomaly_archive/001_UCR_*/
+   → Solution: Verify TRAINED_MODELS_PATH and models exist
+
+❌ Error: "Module not found"
+   → Solution: cd /home/maxoud/local-storage/projects/ums-tsad
+   → Then run: python3 test_testbed_setup.py
+
+❌ Low F1/PR-AUC scores (< 0.3)
+   → This might be normal for difficult datasets
+   → Check individual model performance in detailed_results.json
+
+❌ Very slow execution (> 30s per dataset)
+   → Check: Dataset might be large
+   → Try: Increase --downsampling (e.g., 20 instead of 10)
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ NEXT STEPS                                                                   │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+If the 3-dataset test succeeds:
+
+✓ You verified the baseline works correctly
+✓ You confirmed trained models load properly
+✓ You checked the output format
+
+Now you can:
+
+1️⃣  Run larger testbed (10 datasets):
+    ./run_baseline_testbed.sh ucr_sample
+
+2️⃣  Run full UCR benchmark (250 datasets):
+    ./run_baseline_testbed.sh ucr_full
+
+3️⃣  Test other domains:
+    ./run_baseline_testbed.sh smd    # Server Machine Dataset
+    ./run_baseline_testbed.sh skab   # SKAB benchmark
+
+4️⃣  Compare with RAMSeS:
+    python3 compare_baseline_ramses.py \
+        --baseline_dir test_results_3datasets_<timestamp> \
+        --ramses_dir /path/to/ramses/results
+
+════════════════════════════════════════════════════════════════════════════════
+                              READY TO TEST! 🚀
+════════════════════════════════════════════════════════════════════════════════
+
+Run: ./test_3_datasets.sh
+
+Expected time: 30-90 seconds
+Expected result: 3 successful datasets with metrics
+
+Good luck!

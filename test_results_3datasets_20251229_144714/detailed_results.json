@@ -1,0 +1,44 @@
+[
+  {
+    "file_name": "001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620",
+    "success": false,
+    "error": "too many values to unpack (expected 3)",
+    "timing": {
+      "1_initialization": 1.2265374660491943,
+      "2_model_evaluation": 4726.0377333164215
+    },
+    "memory_peak_mb": 2122.984375,
+    "memory_avg_mb": 1172.7825520833333
+  },
+  {
+    "file_name": "002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900",
+    "success": false,
+    "error": "too many values to unpack (expected 3)",
+    "timing": {
+      "1_initialization": 0.7860317230224609,
+      "2_model_evaluation": 5122.647553920746
+    },
+    "memory_peak_mb": 2279.58203125,
+    "memory_avg_mb": 2175.2877604166665
+  },
+  {
+    "file_name": "003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900",
+    "success": false,
+    "error": "too many values to unpack (expected 3)",
+    "timing": {
+      "1_initialization": 0.811469554901123,
+      "2_model_evaluation": 1376.6253666877747
+    },
+    "memory_peak_mb": 2280.9296875,
+    "memory_avg_mb": 2280.4088541666665
+  }
+]

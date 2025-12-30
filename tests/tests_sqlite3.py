@@ -1,5 +1,5 @@
 import sqlite3 as sl
-con = sl.connect('E:/pythonProject/ums-tsad/db/tsad.db')
+con = sl.connect('/db/tsad.db')
 
 
 # create table data

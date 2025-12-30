@@ -1,0 +1,41 @@
+[
+  {
+    "file_name": "001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620",
+    "success": false,
+    "error": "No module named 'Algorithms'",
+    "timing": {
+      "1_initialization": 1.2041804790496826
+    },
+    "memory_peak_mb": 699.05859375,
+    "memory_avg_mb": 697.66796875
+  },
+  {
+    "file_name": "002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900",
+    "success": false,
+    "error": "[Errno 32] Broken pipe",
+    "timing": {
+      "1_initialization": 1.2019422054290771
+    },
+    "memory_peak_mb": 701.59765625,
+    "memory_avg_mb": 700.498046875
+  },
+  {
+    "file_name": "003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900.txt",
+    "domain": "anomaly_archive",
+    "dataset_name": "anomaly_archive",
+    "entity_name": "003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900",
+    "success": false,
+    "error": "[Errno 32] Broken pipe",
+    "timing": {
+      "1_initialization": 0.8361787796020508
+    },
+    "memory_peak_mb": 702.87109375,
+    "memory_avg_mb": 702.236328125
+  }
+]

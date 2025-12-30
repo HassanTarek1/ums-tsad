@@ -386,7 +386,7 @@ def partial_borda(ranks: np.ndarray,
     # Mask higher ranks
     x, y = np.where((ranks > (top_k - 1)))
     for x_i, y_i in zip(x, y):
-        ranks[x_i, y_i] = np.NaN
+        ranks[x_i, y_i] = np.nan
     aggregated_rank = np.nan_to_num(x=mk.borda_partial(ranks, w=1, k=top_k),
                                     nan=ranks.shape[1] - 1).astype(int)
     objective = np.mean([mk.distance(r, aggregated_rank) for r in ranks])
@@ -616,7 +616,7 @@ def proximity(ranks, n_neighbors: int = 6, top_k=None) -> np.array:
         ranks = ranks.astype(float)
         x, y = np.where((ranks > (top_k - 1)))
         for x_i, y_i in zip(x, y):
-            ranks[x_i, y_i] = np.NaN
+            ranks[x_i, y_i] = np.nan
 
     neigh = NearestNeighbors(n_neighbors=n_neighbors,
                              algorithm='ball_tree',
@@ -635,7 +635,7 @@ def pagerank(ranks, top_k=None) -> np.array:
         ranks = ranks.astype(float)
         x, y = np.where((ranks > (top_k - 1)))
         for x_i, y_i in zip(x, y):
-            ranks[x_i, y_i] = np.NaN
+            ranks[x_i, y_i] = np.nan
 
     G = nx.Graph()
 
@@ -664,7 +664,7 @@ def averagedistance(ranks, top_k=None) -> np.array:
         ranks = ranks.astype(float)
         x, y = np.where((ranks > (top_k - 1)))
         for x_i, y_i in zip(x, y):
-            ranks[x_i, y_i] = np.NaN
+            ranks[x_i, y_i] = np.nan
 
     tol = 1e-6
     averagedist = squareform(pdist(ranks, metric=mk.distance)).mean(axis=1)
