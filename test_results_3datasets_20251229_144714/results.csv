@@ -1,4 +1,0 @@
-file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score,time_1_initialization,time_2_model_evaluation
-001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt,anomaly_archive,False,too many values to unpack (expected 3),2122.984375,1172.7825520833333,,,,,1.2265374660491943,4726.0377333164215
-002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900.txt,anomaly_archive,False,too many values to unpack (expected 3),2279.58203125,2175.2877604166665,,,,,0.7860317230224609,5122.647553920746
-003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900.txt,anomaly_archive,False,too many values to unpack (expected 3),2280.9296875,2280.4088541666665,,,,,0.811469554901123,1376.6253666877747

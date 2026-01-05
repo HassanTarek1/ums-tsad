@@ -1,0 +1,2 @@
+file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score,time_0_training,time_1_initialization
+0.csv,SKAB,False,score and label must have the same length,850.328125,824.6705729166666,,,,,5.717785596847534,0.15132856369018555

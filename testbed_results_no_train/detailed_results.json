@@ -1,0 +1,13 @@
+[
+  {
+    "file_name": "0.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "0",
+    "success": false,
+    "error": "Models not found for skab/0 (checked /home/maxoud/local-storage/projects/ums-tsad/Mononito/trained_models/skab/0 and /home/maxoud/local-storage/projects/ums-tsad/Mononito/trained_models/SKAB/0)",
+    "timing": {},
+    "memory_peak_mb": 771.484375,
+    "memory_avg_mb": 771.484375
+  }
+]

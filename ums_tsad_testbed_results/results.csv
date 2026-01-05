@@ -1,0 +1,2 @@
+file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score,time_0_training,time_1_initialization,time_2_model_evaluation,time_3_model_ranking,time_end_to_end
+0.csv,SKAB,True,,848.29296875,815.93125,LOF_1,NN_2,0.49948567924437515,0.9746340902519547,0.3556809425354004,0.16643738746643066,179.59786367416382,0.0029900074005126953,180.1238293647766

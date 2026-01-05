@@ -1,0 +1,41 @@
+================================================================================
+UMS-TSAD Baseline Testbed Results Summary
+Timestamp: 2026-01-05 18:33:09
+================================================================================
+
+OVERALL STATISTICS
+--------------------------------------------------------------------------------
+Total Datasets: 1
+Successful: 1
+Failed: 0
+
+COMPUTATIONAL OVERHEAD
+--------------------------------------------------------------------------------
+Average Initialization Time: 0.17s (±0.00s)
+Average Model Evaluation Time: 179.60s (±0.00s)
+Average Model Ranking Time: 0.00s (±0.00s)
+Average End-to-End Time: 180.12s (±0.00s)
+Total Computational Time: 180.12s
+
+MEMORY USAGE
+--------------------------------------------------------------------------------
+Average Peak Memory: 848.29 MB
+Max Peak Memory: 848.29 MB
+Average Memory: 815.93 MB
+
+PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+Average F1 Score: 0.9746 (±nan)
+Median F1 Score: 0.9746
+Average PR-AUC: 0.4995 (±nan)
+Median PR-AUC: 0.4995
+
+PER-DOMAIN STATISTICS
+--------------------------------------------------------------------------------
+
+SKAB:
+  Datasets: 1
+  Avg E2E Time: 180.12s
+  Avg Peak Memory: 848.29 MB
+  Avg F1: 0.9746
+  Avg PR-AUC: 0.4995

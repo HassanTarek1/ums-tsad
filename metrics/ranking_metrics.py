@@ -49,17 +49,39 @@ def rank_by_centrality(predictions: dict,
     if isinstance(n_neighbors, int):
         n_neighbors = [n_neighbors]
 
-    neigh = NearestNeighbors(n_neighbors=np.max(n_neighbors),
+    # Cap n_neighbors to be at most n_models - 1 (can't have more neighbors than models minus self)
+    n_models = len(MODEL_NAMES)
+    max_valid_neighbors = n_models - 1
+    if max_valid_neighbors < 1:
+        # Not enough models for centrality calculation
+        return pd.DataFrame({f'CENTRALITY_{nn}': {mn: 0.0 for mn in MODEL_NAMES} for nn in n_neighbors})
+    
+    # Filter out n_neighbors values that are too large
+    valid_n_neighbors = [nn for nn in n_neighbors if nn <= max_valid_neighbors]
+    if not valid_n_neighbors:
+        # All requested n_neighbors are too large, use max valid
+        valid_n_neighbors = [max_valid_neighbors]
+    
+    # Warn if any n_neighbors were capped
+    invalid_n_neighbors = [nn for nn in n_neighbors if nn > max_valid_neighbors]
+    if invalid_n_neighbors:
+        print(f"Warning: Requested n_neighbors {invalid_n_neighbors} exceed number of models ({n_models}). Using maximum of {max_valid_neighbors}.")
+
+    neigh = NearestNeighbors(n_neighbors=np.max(valid_n_neighbors),
                              algorithm='ball_tree',
                              metric=metric)
     neigh.fit(entity_score_matrix)
 
-    for nn in n_neighbors:
+    for nn in valid_n_neighbors:
         CENTRALITY[f'CENTRALITY_{nn}'] = dict(
             zip(
                 MODEL_NAMES,
                 neigh.kneighbors(entity_score_matrix,
                                  n_neighbors=nn)[0].mean(axis=1)))
+    
+    # For invalid n_neighbors, use the maximum valid value
+    for nn in invalid_n_neighbors:
+        CENTRALITY[f'CENTRALITY_{nn}'] = CENTRALITY[f'CENTRALITY_{max_valid_neighbors}']
 
     return pd.DataFrame(CENTRALITY)
 
@@ -172,6 +194,8 @@ def rank_by_synthetic_anomlies(predictions,
                 f'anomalylabels_type_{anomaly_type}'].flatten()
             scores = predictions[model_name][
                 f'entityscores_type_{anomaly_type}'].flatten()
+            
+            print(f'[DEBUG SYNTHETIC] {model_name}/{anomaly_type}: labels shape={labels.shape}, scores shape={scores.shape}')
 
             _, _, f1, auc, *_ = adjusted_precision_recall_f1_auc(labels, scores, n_splits)
 
@@ -204,9 +228,22 @@ def rank_by_praucs(predictions: dict, n_splits=100) -> pd.DataFrame:
     PR_AUCS = {}
     PR_AUCS['PR-AUC'] = {}
     for model_name in MODEL_NAMES:
+        labels = predictions[model_name]['anomaly_labels'].squeeze()
+        scores = predictions[model_name]['entity_scores'].squeeze()
+        
+        # Debug: print shapes to identify mismatch
+        print(f"[DEBUG] {model_name}: labels shape={labels.shape}, scores shape={scores.shape}")
+        
+        # Ensure both have same length (take minimum if mismatch)
+        min_len = min(len(labels), len(scores))
+        if len(labels) != len(scores):
+            print(f"[WARNING] Length mismatch for {model_name}: labels={len(labels)}, scores={len(scores)}. Truncating to {min_len}")
+            labels = labels[:min_len]
+            scores = scores[:min_len]
+        
         PR_AUCS['PR-AUC'][model_name] = prauc(
-            Y=predictions[model_name]['anomaly_labels'].squeeze(),
-            Y_scores=predictions[model_name]['entity_scores'].squeeze(),
+            Y=labels,
+            Y_scores=scores,
             segment_adjust=True,
             n_splits=n_splits)
 

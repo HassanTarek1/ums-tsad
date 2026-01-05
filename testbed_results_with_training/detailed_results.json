@@ -1,0 +1,16 @@
+[
+  {
+    "file_name": "0.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "0",
+    "success": false,
+    "error": "maximum size for tensor at dimension 1 is 231 but size is 4499",
+    "timing": {
+      "0_training": 0.35950231552124023,
+      "1_initialization": 0.18310308456420898
+    },
+    "memory_peak_mb": 806.8984375,
+    "memory_avg_mb": 795.7864583333334
+  }
+]

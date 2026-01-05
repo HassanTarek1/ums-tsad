@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from model_selection.model_selection import RankModels
 from datasets.load import load_data
 from utils.model_selection_utils import rank_models
+from model_trainer.train import TrainModels
 
 # Setup logging
 logging.basicConfig(
@@ -80,11 +81,13 @@ class UMSTSADTestbedRunner:
                  dataset_list_file: str,
                  trained_model_path: str,
                  dataset_path: str,
-                 output_base_dir: str = "ums_tsad_testbed_results",
+                 output_base_dir: str = "testbed_results",
                  timeout: int = 3600,
                  downsampling: int = 10,
                  min_length: int = 256,
-                 normalize: bool = True):
+                 normalize: bool = True,
+                 train_models: bool = False,
+                 algorithm_list: List[str] = None):
         """
         Initialize UMS-TSAD testbed runner
         
@@ -106,6 +109,10 @@ class UMSTSADTestbedRunner:
             Minimum sequence length
         normalize : bool
             Whether to normalize data
+        train_models : bool
+            Whether to train models automatically if not found
+        algorithm_list : List[str], optional
+            List of algorithms to train (default: standard UMS-TSAD set)
         """
         self.dataset_list_file = dataset_list_file
         self.trained_model_path = trained_model_path
@@ -115,6 +122,8 @@ class UMSTSADTestbedRunner:
         self.downsampling = downsampling
         self.min_length = min_length
         self.normalize = normalize
+        self.train_models_flag = train_models
+        self.algorithm_list = algorithm_list or ['DGHL', 'RNN', 'LSTMVAE', 'NN', 'LOF']
         
         self.memory_monitor = MemoryMonitor()
         self.results_by_domain = defaultdict(list)
@@ -180,6 +189,73 @@ class UMSTSADTestbedRunner:
             
         return dataset_name, entity_name
     
+    def train_models_if_needed(self, dataset_name: str, entity_name: str) -> bool:
+        """
+        Train models for a dataset/entity if they don't exist or if training is forced
+        
+        Parameters
+        ----------
+        dataset_name : str
+            Name of the dataset (lowercase, e.g., 'skab')
+        entity_name : str
+            Name of the entity
+            
+        Returns
+        -------
+        bool
+            True if models exist or were successfully trained, False otherwise
+        """
+        # Check both lowercase and uppercase paths for existing models
+        models_dir_lower = os.path.join(self.trained_model_path, dataset_name, entity_name)
+        models_dir_upper = os.path.join(self.trained_model_path, dataset_name.upper(), entity_name)
+        
+        # Check if models already exist in either location
+        models_exist = False
+        if os.path.exists(models_dir_lower) and os.listdir(models_dir_lower):
+            models_exist = True
+            models_dir = models_dir_lower
+        elif os.path.exists(models_dir_upper) and os.listdir(models_dir_upper):
+            models_exist = True
+            models_dir = models_dir_upper
+        
+        if models_exist and not self.train_models_flag:
+            logger.info(f"Models found for {dataset_name}/{entity_name} at {models_dir}, skipping training")
+            return True
+        
+        if not self.train_models_flag:
+            logger.warning(f"No models found for {dataset_name}/{entity_name} and training is disabled")
+            return False
+        
+        # Map lowercase dataset names to proper case for load_data
+        dataset_name_for_load = dataset_name.upper() if dataset_name.lower() == 'skab' else dataset_name
+        
+        # Train models
+        logger.info(f"Training models for {dataset_name}/{entity_name}...")
+        try:
+            trainer = TrainModels(
+                dataset=dataset_name_for_load,  # Use proper case for load_data
+                entity=entity_name,
+                algorithm_list=self.algorithm_list,
+                downsampling=self.downsampling,
+                min_length=self.min_length,
+                root_dir=self.dataset_path,
+                training_size=1.0,
+                overwrite=self.train_models_flag,  # Overwrite if training is forced
+                verbose=True,
+                save_dir=self.trained_model_path
+            )
+            
+            # Monkey-patch to save to lowercase directory
+            trainer.logging_hierarchy = [dataset_name, entity_name]
+            
+            trainer.train_models(model_architectures=self.algorithm_list)
+            logger.info(f"✓ Successfully trained models for {dataset_name}/{entity_name}")
+            return True
+        except Exception as e:
+            logger.error(f"✗ Failed to train models for {dataset_name}/{entity_name}: {str(e)}")
+            logger.error(traceback.format_exc())
+            return False
+    
     def run_single_dataset(self, file_name: str, domain: str) -> Dict:
         """
         Run UMS-TSAD on a single dataset
@@ -211,6 +287,26 @@ class UMSTSADTestbedRunner:
         self.memory_monitor.update()
         
         try:
+            # ============================================================
+            # STAGE 0: Train models if needed
+            # ============================================================
+            if self.train_models_flag:
+                stage_start = time.time()
+                logger.info("Stage 0: Training models...")
+                models_ready = self.train_models_if_needed(dataset_name, entity_name)
+                if not models_ready:
+                    raise FileNotFoundError(f"Models not available for {dataset_name}/{entity_name}")
+                timing_dict['0_training'] = time.time() - stage_start
+                logger.info(f"Training complete: {timing_dict['0_training']:.2f}s")
+                self.memory_monitor.update()
+            else:
+                # Just check if models exist (check both cases)
+                models_dir_lower = os.path.join(self.trained_model_path, dataset_name, entity_name)
+                models_dir_upper = os.path.join(self.trained_model_path, dataset_name.upper(), entity_name)
+                models_exist = os.path.exists(models_dir_lower) or os.path.exists(models_dir_upper)
+                if not models_exist:
+                    raise FileNotFoundError(f"Models not found for {dataset_name}/{entity_name} (checked {models_dir_lower} and {models_dir_upper})")
+            
             # ============================================================
             # STAGE 1: Initialize RankModels
             # ============================================================
@@ -272,12 +368,31 @@ class UMSTSADTestbedRunner:
             timing_dict['end_to_end'] = total_time
             
             # Get best model by PR-AUC ranking
-            best_model_prauc = rank_prauc.iloc[0] if len(rank_prauc) > 0 else 'Unknown'
-            best_model_f1 = rank_f1.iloc[0] if len(rank_f1) > 0 else 'Unknown'
+            # rank_prauc/rank_f1 are numpy arrays where each element is the rank (0=best)
+            # We need to find which model index has rank 0 (the best rank)
+            if len(rank_prauc) > 0:
+                best_idx_prauc = int(np.argmin(rank_prauc))
+                best_model_prauc = ranker.models_performance_matrix.index[best_idx_prauc]
+            else:
+                best_model_prauc = 'Unknown'
+                
+            if len(rank_f1) > 0:
+                best_idx_f1 = int(np.argmin(rank_f1))
+                best_model_f1 = ranker.models_performance_matrix.index[best_idx_f1]
+            else:
+                best_model_f1 = 'Unknown'
             
             # Extract performance metrics for best models
-            best_prauc_score = ranker.models_prauc.get(best_model_prauc, -1) if best_model_prauc != 'Unknown' else -1
-            best_f1_score = ranker.models_f1.get(best_model_f1, -1) if best_model_f1 != 'Unknown' else -1
+            # ranker.models_prauc and ranker.models_f1 are DataFrames with model names as index
+            if best_model_prauc != 'Unknown' and best_model_prauc in ranker.models_prauc.index:
+                best_prauc_score = ranker.models_prauc.loc[best_model_prauc, 'PR-AUC']
+            else:
+                best_prauc_score = -1
+                
+            if best_model_f1 != 'Unknown' and best_model_f1 in ranker.models_f1.index:
+                best_f1_score = ranker.models_f1.loc[best_model_f1, 'Best F-1']
+            else:
+                best_f1_score = -1
             
             logger.info(f"\nBest Model (PR-AUC): {best_model_prauc} (Score: {best_prauc_score:.4f})")
             logger.info(f"Best Model (F1): {best_model_f1} (Score: {best_f1_score:.4f})")
@@ -364,17 +479,29 @@ class UMSTSADTestbedRunner:
         return results_df
     
     def save_results(self, results: List[Dict]):
-        """Save detailed results to JSON"""
-        output_file = os.path.join(self.output_base_dir, 'detailed_results.json')
+        """Save detailed results to JSON, organized by domain"""
+        # Group results by domain
+        results_by_domain = defaultdict(list)
+        for result in results:
+            domain = result.get('domain', 'unknown').lower()
+            results_by_domain[domain].append(result)
         
-        with open(output_file, 'w') as f:
-            json.dump(results, f, indent=2, default=str)
-        
-        logger.info(f"Saved detailed results to {output_file}")
+        # Save results for each domain
+        for domain, domain_results in results_by_domain.items():
+            domain_dir = os.path.join(self.output_base_dir, domain)
+            os.makedirs(domain_dir, exist_ok=True)
+            
+            output_file = os.path.join(domain_dir, 'detailed_results.json')
+            with open(output_file, 'w') as f:
+                json.dump(domain_results, f, indent=2, default=str)
+            
+            logger.info(f"Saved detailed results to {output_file}")
     
     def save_summary(self, results_df: pd.DataFrame):
-        """Generate and save summary statistics"""
-        summary_file = os.path.join(self.output_base_dir, 'summary_report.txt')
+        """Generate and save summary statistics, organized by domain"""
+        
+        # Save overall summary
+        summary_file = os.path.join(self.output_base_dir, 'overall_summary.txt')
         
         with open(summary_file, 'w') as f:
             f.write("="*80 + "\n")
@@ -398,10 +525,10 @@ class UMSTSADTestbedRunner:
                 f.write("-"*80 + "\n")
                 
                 # Extract timing information
-                init_times = [r['timing'].get('1_initialization', 0) for r in success_df['timing']]
-                eval_times = [r['timing'].get('2_model_evaluation', 0) for r in success_df['timing']]
-                rank_times = [r['timing'].get('3_model_ranking', 0) for r in success_df['timing']]
-                e2e_times = [r['timing'].get('end_to_end', 0) for r in success_df['timing']]
+                init_times = [timing.get('1_initialization', 0) for timing in success_df['timing']]
+                eval_times = [timing.get('2_model_evaluation', 0) for timing in success_df['timing']]
+                rank_times = [timing.get('3_model_ranking', 0) for timing in success_df['timing']]
+                e2e_times = [timing.get('end_to_end', 0) for timing in success_df['timing']]
                 
                 f.write(f"Average Initialization Time: {np.mean(init_times):.2f}s (±{np.std(init_times):.2f}s)\n")
                 f.write(f"Average Model Evaluation Time: {np.mean(eval_times):.2f}s (±{np.std(eval_times):.2f}s)\n")
@@ -442,7 +569,7 @@ class UMSTSADTestbedRunner:
                     f.write(f"\n{domain}:\n")
                     f.write(f"  Datasets: {len(domain_df)}\n")
                     
-                    domain_e2e = [r['timing'].get('end_to_end', 0) for r in domain_df['timing']]
+                    domain_e2e = [timing.get('end_to_end', 0) for timing in domain_df['timing']]
                     f.write(f"  Avg E2E Time: {np.mean(domain_e2e):.2f}s\n")
                     f.write(f"  Avg Peak Memory: {domain_df['memory_peak_mb'].mean():.2f} MB\n")
                     
@@ -454,37 +581,94 @@ class UMSTSADTestbedRunner:
                     if len(domain_prauc) > 0:
                         f.write(f"  Avg PR-AUC: {domain_prauc.mean():.4f}\n")
         
-        logger.info(f"Saved summary report to {summary_file}")
+        logger.info(f"Saved overall summary to {summary_file}")
         
-        # Also save CSV for easy analysis
-        csv_file = os.path.join(self.output_base_dir, 'results.csv')
-        
-        # Flatten timing dict for CSV
-        csv_data = []
-        for _, row in results_df.iterrows():
-            csv_row = {
-                'file_name': row['file_name'],
-                'domain': row['domain'],
-                'success': row['success'],
-                'error': row['error'],
-                'memory_peak_mb': row['memory_peak_mb'],
-                'memory_avg_mb': row['memory_avg_mb'],
-                'best_model_prauc': row.get('best_model_prauc'),
-                'best_model_f1': row.get('best_model_f1'),
-                'best_prauc_score': row.get('best_prauc_score'),
-                'best_f1_score': row.get('best_f1_score'),
-            }
+        # Save per-domain summaries and CSVs
+        for domain in results_df['domain'].unique():
+            domain_lower = domain.lower()
+            domain_dir = os.path.join(self.output_base_dir, domain_lower)
+            os.makedirs(domain_dir, exist_ok=True)
             
-            # Add timing columns
-            if 'timing' in row and isinstance(row['timing'], dict):
-                for key, val in row['timing'].items():
-                    csv_row[f'time_{key}'] = val
+            domain_df = results_df[results_df['domain'] == domain]
             
-            csv_data.append(csv_row)
-        
-        csv_df = pd.DataFrame(csv_data)
-        csv_df.to_csv(csv_file, index=False)
-        logger.info(f"Saved CSV results to {csv_file}")
+            # Domain-specific summary
+            domain_summary_file = os.path.join(domain_dir, 'summary_report.txt')
+            with open(domain_summary_file, 'w') as f:
+                f.write("="*80 + "\n")
+                f.write(f"UMS-TSAD Results Summary - {domain.upper()}\n")
+                f.write(f"Timestamp: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                f.write("="*80 + "\n\n")
+                
+                f.write(f"Total Datasets: {len(domain_df)}\n")
+                f.write(f"Successful: {domain_df['success'].sum()}\n")
+                f.write(f"Failed: {(~domain_df['success']).sum()}\n\n")
+                
+                success_domain_df = domain_df[domain_df['success']]
+                
+                if len(success_domain_df) > 0:
+                    # Timing
+                    init_times = [timing.get('1_initialization', 0) for timing in success_domain_df['timing']]
+                    eval_times = [timing.get('2_model_evaluation', 0) for timing in success_domain_df['timing']]
+                    rank_times = [timing.get('3_model_ranking', 0) for timing in success_domain_df['timing']]
+                    e2e_times = [timing.get('end_to_end', 0) for timing in success_domain_df['timing']]
+                    
+                    f.write("COMPUTATIONAL OVERHEAD\n")
+                    f.write("-"*80 + "\n")
+                    f.write(f"Average Initialization Time: {np.mean(init_times):.2f}s (±{np.std(init_times):.2f}s)\n")
+                    f.write(f"Average Model Evaluation Time: {np.mean(eval_times):.2f}s (±{np.std(eval_times):.2f}s)\n")
+                    f.write(f"Average Model Ranking Time: {np.mean(rank_times):.2f}s (±{np.std(rank_times):.2f}s)\n")
+                    f.write(f"Average End-to-End Time: {np.mean(e2e_times):.2f}s (±{np.std(e2e_times):.2f}s)\n")
+                    f.write(f"Total Time: {np.sum(e2e_times):.2f}s\n\n")
+                    
+                    # Memory
+                    f.write("MEMORY USAGE\n")
+                    f.write("-"*80 + "\n")
+                    f.write(f"Average Peak Memory: {success_domain_df['memory_peak_mb'].mean():.2f} MB\n")
+                    f.write(f"Max Peak Memory: {success_domain_df['memory_peak_mb'].max():.2f} MB\n\n")
+                    
+                    # Performance
+                    valid_f1 = success_domain_df['best_f1_score'].dropna()
+                    valid_prauc = success_domain_df['best_prauc_score'].dropna()
+                    
+                    if len(valid_f1) > 0 or len(valid_prauc) > 0:
+                        f.write("PERFORMANCE METRICS\n")
+                        f.write("-"*80 + "\n")
+                        if len(valid_f1) > 0:
+                            f.write(f"Average F1 Score: {valid_f1.mean():.4f} (±{valid_f1.std():.4f})\n")
+                            f.write(f"Median F1 Score: {valid_f1.median():.4f}\n")
+                        if len(valid_prauc) > 0:
+                            f.write(f"Average PR-AUC: {valid_prauc.mean():.4f} (±{valid_prauc.std():.4f})\n")
+                            f.write(f"Median PR-AUC: {valid_prauc.median():.4f}\n")
+            
+            logger.info(f"Saved {domain} summary to {domain_summary_file}")
+            
+            # Domain-specific CSV
+            csv_file = os.path.join(domain_dir, 'results.csv')
+            csv_data = []
+            for _, row in domain_df.iterrows():
+                csv_row = {
+                    'file_name': row['file_name'],
+                    'domain': row['domain'],
+                    'success': row['success'],
+                    'error': row['error'],
+                    'memory_peak_mb': row['memory_peak_mb'],
+                    'memory_avg_mb': row['memory_avg_mb'],
+                    'best_model_prauc': row.get('best_model_prauc'),
+                    'best_model_f1': row.get('best_model_f1'),
+                    'best_prauc_score': row.get('best_prauc_score'),
+                    'best_f1_score': row.get('best_f1_score'),
+                }
+                
+                # Add timing columns
+                if 'timing' in row and isinstance(row['timing'], dict):
+                    for key, val in row['timing'].items():
+                        csv_row[f'time_{key}'] = val
+                
+                csv_data.append(csv_row)
+            
+            csv_df = pd.DataFrame(csv_data)
+            csv_df.to_csv(csv_file, index=False)
+            logger.info(f"Saved {domain} CSV to {csv_file}")
 
 
 def main():
@@ -515,7 +699,7 @@ def main():
     parser.add_argument(
         '--output_dir',
         type=str,
-        default='ums_tsad_testbed_results',
+        default='testbed_results',
         help='Output directory for results'
     )
     parser.add_argument(
@@ -539,8 +723,20 @@ def main():
     parser.add_argument(
         '--timeout',
         type=int,
-        default=3600,
+        default=36000,
         help='Timeout per dataset in seconds'
+    )
+    parser.add_argument(
+        '--train',
+        action='store_true',
+        help='Train models automatically if not found or retrain all models'
+    )
+    parser.add_argument(
+        '--algorithms',
+        type=str,
+        nargs='+',
+        default=['DGHL', 'RNN', 'LSTMVAE', 'NN', 'LOF'],
+        help='List of algorithms to train (e.g., --algorithms DGHL RNN NN LOF)'
     )
     
     args = parser.parse_args()
@@ -553,7 +749,9 @@ def main():
         output_base_dir=args.output_dir,
         timeout=args.timeout,
         downsampling=args.downsampling,
-        min_length=args.min_length
+        min_length=args.min_length,
+        train_models=args.train,
+        algorithm_list=args.algorithms
     )
     
     # Run testbed

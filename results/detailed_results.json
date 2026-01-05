@@ -1,0 +1,46 @@
+[
+  {
+    "file_name": "0.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "0",
+    "success": false,
+    "error": "Models not available for skab/0",
+    "timing": {},
+    "memory_peak_mb": 771.4609375,
+    "memory_avg_mb": 771.4609375
+  },
+  {
+    "file_name": "1.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "1",
+    "success": false,
+    "error": "Models not available for skab/1",
+    "timing": {},
+    "memory_peak_mb": 772.71484375,
+    "memory_avg_mb": 772.71484375
+  },
+  {
+    "file_name": "2.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "2",
+    "success": false,
+    "error": "Models not available for skab/2",
+    "timing": {},
+    "memory_peak_mb": 772.71484375,
+    "memory_avg_mb": 772.71484375
+  },
+  {
+    "file_name": "13.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "13",
+    "success": false,
+    "error": "Models not available for skab/13",
+    "timing": {},
+    "memory_peak_mb": 772.71484375,
+    "memory_avg_mb": 772.71484375
+  }
+]

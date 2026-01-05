@@ -1,0 +1,16 @@
+[
+  {
+    "file_name": "0.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "0",
+    "success": false,
+    "error": "score and label must have the same length",
+    "timing": {
+      "0_training": 5.717785596847534,
+      "1_initialization": 0.15132856369018555
+    },
+    "memory_peak_mb": 850.328125,
+    "memory_avg_mb": 824.6705729166666
+  }
+]

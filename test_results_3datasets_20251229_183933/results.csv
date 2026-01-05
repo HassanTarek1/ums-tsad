@@ -1,4 +1,0 @@
-file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score,time_1_initialization,time_2_model_evaluation,time_3_model_ranking,time_end_to_end
-001_UCR_Anomaly_DISTORTED1sddb40_35000_52000_52620.txt,anomaly_archive,False,'numpy.ndarray' object has no attribute 'iloc',2246.109375,1471.6875,,,,,1.2075328826904297,4697.99988079071,0.003445148468017578,4699.211845874786
-002_UCR_Anomaly_DISTORTED2sddb40_35000_56600_56900.txt,anomaly_archive,False,'numpy.ndarray' object has no attribute 'iloc',2247.02734375,2246.666015625,,,,,0.9128851890563965,934.2603070735931,0.00419306755065918,935.1783497333527
-003_UCR_Anomaly_DISTORTED3sddb40_35000_46600_46900.txt,anomaly_archive,False,'numpy.ndarray' object has no attribute 'iloc',2282.2421875,2264.8828125,,,,,1.1765220165252686,9174.932885408401,0.00406193733215332,9176.113974571228

@@ -1,0 +1,2 @@
+file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score,time_0_training,time_1_initialization
+0.csv,SKAB,False,maximum size for tensor at dimension 1 is 231 but size is 4499,806.8984375,795.7864583333334,,,,,0.35950231552124023,0.18310308456420898

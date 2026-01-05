@@ -1,0 +1,2 @@
+file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score
+0.csv,SKAB,False,Models not found for skab/0 (checked /home/maxoud/local-storage/projects/ums-tsad/Mononito/trained_models/skab/0 and /home/maxoud/local-storage/projects/ums-tsad/Mononito/trained_models/SKAB/0),771.484375,771.484375,,,,

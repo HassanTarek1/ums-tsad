@@ -15,6 +15,9 @@ from tqdm import tqdm
 from loguru import logger
 import numpy as np
 
+# Set matplotlib backend before importing pyplot
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend
 
 from algorithm.pyod_model import PyodModel
 from .hyperparameter_grids import *  # DGHL_TRAIN_PARAM_GRID, DGHL_PARAM_GRID, MD_TRAIN_PARAM_GRID, MD_PARAM_GRID, RM_PARAM_GRID, RM_TRAIN_PARAM_GRID, NN_PARAM_GRID, NN_TRAIN_PARAM_GRID, LSTMVAE_TRAIN_PARAM_GRID, LSTMVAE_PARAM_GRID, RNN_TRAIN_PARAM_GRID, RNN_PARAM_GRID
@@ -37,8 +40,9 @@ from algorithm.abod import TsadABOD
 from algorithm.cblof import TsadCblof
 from algorithm.cof import  TsadCof
 from algorithm.sos import TsadSOS
-from algorithm.nhi import NHiModel
-from algorithm.tranad import TranModel
+# Optional models (require additional dependencies)
+# from algorithm.nhi import NHiModel
+# from algorithm.tranad import TranModel
 
 class TrainModels(object):
     """Class to pre-train algorithm on a dataset/entity.

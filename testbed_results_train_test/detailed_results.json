@@ -1,0 +1,13 @@
+[
+  {
+    "file_name": "0.csv",
+    "domain": "SKAB",
+    "dataset_name": "skab",
+    "entity_name": "0",
+    "success": false,
+    "error": "Models not available for skab/0",
+    "timing": {},
+    "memory_peak_mb": 775.453125,
+    "memory_avg_mb": 775.453125
+  }
+]

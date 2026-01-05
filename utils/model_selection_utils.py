@@ -119,7 +119,13 @@ def evaluate_model(data: Union[Dataset, Entity],
     print(f"Evaluating model: {model_name}")
 
     anomaly_labels = data.entities[0].labels
-    print(f"Loaded anomaly labels. Length: {len(anomaly_labels)}")
+    print(f"Loaded anomaly_labels: shape={anomaly_labels.shape}, length={len(anomaly_labels)}")
+    print(f"Original data shape: Y.shape={data.entities[0].Y.shape}")
+    
+    # Flatten anomaly_labels to 1D if needed
+    if anomaly_labels.ndim > 1:
+        anomaly_labels = anomaly_labels.flatten()
+        print(f"Flattened anomaly_labels to shape={anomaly_labels.shape}")
 
     dataloader = Loader(dataset=data,
                         batch_size=eval_batch_size,
@@ -178,10 +184,13 @@ def evaluate_model(data: Union[Dataset, Entity],
 
     print("Completed all batches")
 
+    print(f"[DEBUG] entity_scores before final_anomaly_score: shape={entity_scores.shape}")
     entity_scores = model.final_anomaly_score(input=entity_scores, return_detail=False)
+    print(f"[DEBUG] entity_scores after final_anomaly_score: shape={entity_scores.shape}")
     print("Computed final anomaly scores")
 
     entity_scores = entity_scores.detach().cpu().numpy()
+    print(f"[DEBUG] entity_scores after numpy conversion: shape={entity_scores.shape}")
     print("Converted entity_scores to NumPy array")
 
     Y_hat = de_unfold(windows=Y_hat, window_step=model.window_step)
@@ -220,6 +229,31 @@ def evaluate_model(data: Union[Dataset, Entity],
                                        padding_size=dataloader.padding_size,
                                        padding_type=padding_type)
     print("Adjusted mask for padding")
+    
+    # Flatten entity_scores to 1D if it's 2D
+    if entity_scores.ndim > 1:
+        entity_scores = entity_scores.flatten()
+        print(f"Flattened entity_scores to shape={entity_scores.shape}")
+    
+    print(f"[DEBUG] After all transformations: entity_scores.shape={entity_scores.shape}, anomaly_labels.shape={anomaly_labels.shape}")
+    
+    # Expand anomaly_labels to match entity_scores length
+    # The entity_scores have been expanded through windowing and de_unfolding
+    # We need to expand the labels correspondingly
+    if len(anomaly_labels) != len(entity_scores):
+        original_len = len(anomaly_labels)
+        target_len = len(entity_scores)
+        print(f"Expanding anomaly_labels from {original_len} to {target_len} to match entity_scores")
+        
+        # Use linear interpolation to expand labels
+        # This properly handles the expansion from original data to windowed/padded data
+        from scipy import interpolate
+        original_indices = np.linspace(0, original_len - 1, original_len)
+        new_indices = np.linspace(0, original_len - 1, target_len)
+        f = interpolate.interp1d(original_indices, anomaly_labels, kind='nearest', fill_value='extrapolate')
+        anomaly_labels = f(new_indices)
+        
+        print(f"Expanded anomaly_labels to shape={anomaly_labels.shape}")
 
     print("Evaluation complete. Returning prediction dictionary.")
     return {
@@ -374,6 +408,24 @@ def evaluate_model_synthetic_anomalies(data: Union[Dataset, Entity],
             scores=entity_scores,
             padding_size=dataloader.padding_size,
             padding_type=padding_type)
+        
+        # Flatten entity_scores if it's 2D
+        if entity_scores.ndim > 1:
+            entity_scores = entity_scores.flatten()
+        
+        # Expand anomaly_labels_concatenated to match entity_scores length
+        # The entity_scores have been expanded through windowing and de_unfolding
+        if len(anomaly_labels_concatenated) != len(entity_scores):
+            original_len = len(anomaly_labels_concatenated)
+            target_len = len(entity_scores)
+            print(f"[DEBUG SYNTHETIC] Expanding labels from {original_len} to {target_len} for {anomaly_type}")
+            
+            # Use linear interpolation to expand labels
+            from scipy import interpolate
+            original_indices = np.linspace(0, original_len - 1, original_len)
+            new_indices = np.linspace(0, original_len - 1, target_len)
+            f = interpolate.interp1d(original_indices, anomaly_labels_concatenated, kind='nearest', fill_value='extrapolate')
+            anomaly_labels_concatenated = f(new_indices)
 
         PREDICTIONS[
             f'anomalysizes_type_{anomaly_type}'] = anomaly_sizes_concatenated

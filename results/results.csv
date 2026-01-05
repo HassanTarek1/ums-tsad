@@ -1,0 +1,5 @@
+file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score
+0.csv,SKAB,False,Models not available for skab/0,771.4609375,771.4609375,,,,
+1.csv,SKAB,False,Models not available for skab/1,772.71484375,772.71484375,,,,
+2.csv,SKAB,False,Models not available for skab/2,772.71484375,772.71484375,,,,
+13.csv,SKAB,False,Models not available for skab/13,772.71484375,772.71484375,,,,
