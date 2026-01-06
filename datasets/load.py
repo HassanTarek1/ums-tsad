@@ -134,12 +134,17 @@ def load_any_dataset(group, root_dir, dataset, entity, normalize=True, verbose=T
         data_path = f'{root_dir}/{dataset}/{entity[0]}'
     else:
         data_path = f'{root_dir}/{dataset}/{entity}'
+    
+    # Check for both .csv and .txt files
     if os.path.isfile(f'{data_path}.csv'):
         dataset = load_csv_file(f'{data_path}.csv', entity, group, normalize, verbose)
+    elif os.path.isfile(f'{data_path}.txt'):
+        dataset = load_csv_file(f'{data_path}.txt', entity, group, normalize, verbose)
     else:
-        csv_files = [os.path.join(data_path, file) for file in os.listdir(data_path) if file.lower().endswith('.csv')]
+        # Try to find csv/txt files in a directory
+        csv_files = [os.path.join(data_path, file) for file in os.listdir(data_path) if file.lower().endswith(('.csv', '.txt'))]
         if len(csv_files) > 1 :
-            raise Exception("Exceeded the number of allowed .csv files. Only 1 csv file should be present")
+            raise Exception("Exceeded the number of allowed .csv/.txt files. Only 1 csv/txt file should be present")
         else:
             dataset = load_csv_file(csv_files[0], entity, group, normalize, verbose)
 

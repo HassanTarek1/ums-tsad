@@ -217,18 +217,32 @@ class UMSTSADTestbedRunner:
         bool
             True if models exist or were successfully trained, False otherwise
         """
-        # Check both lowercase and uppercase paths for existing models
-        models_dir_lower = os.path.join(self.trained_model_path, dataset_name, entity_name)
-        models_dir_upper = os.path.join(self.trained_model_path, dataset_name.upper(), entity_name)
-        
-        # Check if models already exist in either location
+        # Check for models in a case-insensitive manner under trained_model_path
         models_exist = False
-        if os.path.exists(models_dir_lower) and os.listdir(models_dir_lower):
-            models_exist = True
-            models_dir = models_dir_lower
-        elif os.path.exists(models_dir_upper) and os.listdir(models_dir_upper):
-            models_exist = True
-            models_dir = models_dir_upper
+        models_dir = None
+        try:
+            for d in os.listdir(self.trained_model_path):
+                if d.lower() == dataset_name.lower():
+                    candidate = os.path.join(self.trained_model_path, d, entity_name)
+                    # Ensure the dataset directory contains files (models)
+                    if os.path.exists(candidate) and os.listdir(os.path.join(self.trained_model_path, d)):
+                        models_exist = True
+                        models_dir = candidate
+                        break
+        except Exception:
+            # If trained_model_path doesn't exist or isn't listable, fall back to original checks
+            pass
+
+        # Fallback: check explicit lowercase and UPPERCASE paths as before
+        if not models_exist:
+            models_dir_lower = os.path.join(self.trained_model_path, dataset_name, entity_name)
+            models_dir_upper = os.path.join(self.trained_model_path, dataset_name.upper(), entity_name)
+            if os.path.exists(models_dir_lower) and os.listdir(models_dir_lower):
+                models_exist = True
+                models_dir = models_dir_lower
+            elif os.path.exists(models_dir_upper) and os.listdir(models_dir_upper):
+                models_exist = True
+                models_dir = models_dir_upper
         
         if models_exist and not self.train_models_flag:
             logger.info(f"Models found for {dataset_name}/{entity_name} at {models_dir}, skipping training")
@@ -312,12 +326,30 @@ class UMSTSADTestbedRunner:
                 logger.info(f"Training complete: {timing_dict['0_training']:.2f}s")
                 self.memory_monitor.update()
             else:
-                # Just check if models exist (check both cases)
+                # Check for models in a case-insensitive manner under trained_model_path
+                models_exist = False
+                models_dir_checked = []
+                try:
+                    for d in os.listdir(self.trained_model_path):
+                        if d.lower() == dataset_name.lower():
+                            candidate = os.path.join(self.trained_model_path, d, entity_name)
+                            models_dir_checked.append(candidate)
+                            if os.path.exists(candidate):
+                                models_exist = True
+                                break
+                except Exception:
+                    pass
+
+                # Fallback: explicit lower/upper checks
                 models_dir_lower = os.path.join(self.trained_model_path, dataset_name, entity_name)
                 models_dir_upper = os.path.join(self.trained_model_path, dataset_name.upper(), entity_name)
-                models_exist = os.path.exists(models_dir_lower) or os.path.exists(models_dir_upper)
+                models_dir_checked.extend([models_dir_lower, models_dir_upper])
                 if not models_exist:
-                    raise FileNotFoundError(f"Models not found for {dataset_name}/{entity_name} (checked {models_dir_lower} and {models_dir_upper})")
+                    if os.path.exists(models_dir_lower) or os.path.exists(models_dir_upper):
+                        models_exist = True
+
+                if not models_exist:
+                    raise FileNotFoundError(f"Models not found for {dataset_name}/{entity_name} (checked {', '.join(models_dir_checked + [models_dir_lower, models_dir_upper])})")
             
             # ============================================================
             # STAGE 1: Initialize RankModels
