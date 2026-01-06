@@ -25,8 +25,7 @@ Average Memory: 2580.55 MB
 
 PERFORMANCE METRICS
 --------------------------------------------------------------------------------
-Average F1 Score: 0.9333 (±0.1155)
-Median F1 Score: 1.0000
+Average F1 Score: 0.6633 (±0.1155)
 Average PR-AUC: 0.1627 (±0.2770)
 Median PR-AUC: 0.0056
 
@@ -37,5 +36,3 @@ anomaly_archive:
   Datasets: 3
   Avg E2E Time: 2661.81s
   Avg Peak Memory: 2995.83 MB
-  Avg F1: 0.9333
-  Avg PR-AUC: 0.1627

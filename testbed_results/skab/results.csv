@@ -1,5 +1,2 @@
-file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score
-0.csv,SKAB,False,Models not available for skab/0,773.890625,773.890625,,,,
-1.csv,SKAB,False,Models not available for skab/1,970.453125,970.453125,,,,
-2.csv,SKAB,False,Models not available for skab/2,988.796875,988.796875,,,,
-13.csv,SKAB,False,Models not available for skab/13,961.3125,961.3125,,,,
+file_name,domain,success,error,memory_peak_mb,memory_avg_mb,best_model_prauc,best_model_f1,best_prauc_score,best_f1_score,time_1_initialization,time_2_model_evaluation,time_3_model_ranking,time_end_to_end
+0.csv,SKAB,True,,1312.16015625,1045.9228515625,NN_2,NN_2,0.4755842739170866,0.9746340902519547,0.15487098693847656,546.3202548027039,0.003361225128173828,546.4789719581604

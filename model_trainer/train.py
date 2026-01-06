@@ -161,42 +161,48 @@ class TrainModels(object):
         logger.info(f'exist_model_list is {exist_model_list}')
         for model_name in model_architectures:
             # if no cache train model
-            if ('DGHL' == model_name) & (model_name not in exist_model_list):
-                self.train_dghl()
-            elif ('RNN' == model_name) & (model_name not in exist_model_list) :
-                self.train_rnn()
-            elif ('LSTMVAE' == model_name) & (model_name not in exist_model_list):
-                self.train_lstmvae()
-            elif ('NN' == model_name) & (model_name not in exist_model_list):
-                self.train_nn()
-            elif ('MD' == model_name) & (model_name not in exist_model_list):
-                self.train_md()
-            elif ('RM' == model_name) & (model_name not in exist_model_list):
-                self.train_rm()
-            elif ('LOF' == model_name) & (model_name not in exist_model_list):
+            try:
+                logger.info(f'Starting training for {model_name}...')
+                if ('DGHL' == model_name) & (model_name not in exist_model_list):
+                    self.train_dghl()
+                elif ('RNN' == model_name) & (model_name not in exist_model_list) :
+                    self.train_rnn()
+                elif ('LSTMVAE' == model_name) & (model_name not in exist_model_list):
+                    self.train_lstmvae()
+                elif ('NN' == model_name) & (model_name not in exist_model_list):
+                    self.train_nn()
+                elif ('MD' == model_name) & (model_name not in exist_model_list):
+                    self.train_md()
+                elif ('RM' == model_name) & (model_name not in exist_model_list):
+                    self.train_rm()
+                elif ('LOF' == model_name) & (model_name not in exist_model_list):
 
-                self.train_lof()
+                    self.train_lof()
 
-            elif ('KDE' == model_name) & (model_name not in exist_model_list):
-                self.train_kde()
+                elif ('KDE' == model_name) & (model_name not in exist_model_list):
+                    self.train_kde()
 
-            elif ('ABOD' == model_name) & (model_name not in exist_model_list):
-                self.train_abod()
+                elif ('ABOD' == model_name) & (model_name not in exist_model_list):
+                    self.train_abod()
 
-            elif ('CBLOF' == model_name) & (model_name not in exist_model_list):
-                self.train_cblof()
+                elif ('CBLOF' == model_name) & (model_name not in exist_model_list):
+                    self.train_cblof()
 
-            elif ('COF' == model_name) & (model_name not in exist_model_list):
-                self.train_cof()
+                elif ('COF' == model_name) & (model_name not in exist_model_list):
+                    self.train_cof()
 
-            elif ('SOS' == model_name) & (model_name not in exist_model_list):
-                self.train_sos()
-            elif ('NHI' == model_name) & (model_name not in exist_model_list):
-                self.train_nhi()
-            elif ('TRANAD' == model_name) & (model_name not in exist_model_list):
-                self.train_tranad()
-            elif (model_name not in exist_model_list):
-                self.train_pyod(model_name)
+                elif ('SOS' == model_name) & (model_name not in exist_model_list):
+                    self.train_sos()
+                elif ('NHI' == model_name) & (model_name not in exist_model_list):
+                    self.train_nhi()
+                elif ('TRANAD' == model_name) & (model_name not in exist_model_list):
+                    self.train_tranad()
+                elif (model_name not in exist_model_list):
+                    self.train_pyod(model_name)
+            except Exception as e:
+                logger.error(f'Failed to train {model_name}: {str(e)}')
+                logger.error(f'Skipping {model_name} and continuing with other models...')
+                continue
 
 
 

@@ -1,9 +1,26 @@
 ================================================================================
 UMS-TSAD Results Summary - SKAB
-Timestamp: 2026-01-05 19:02:23
+Timestamp: 2026-01-06 14:53:55
 ================================================================================
 
-Total Datasets: 4
-Successful: 0
-Failed: 4
+Total Datasets: 1
+Successful: 1
+Failed: 0
 
+COMPUTATIONAL OVERHEAD
+--------------------------------------------------------------------------------
+Average Initialization Time: 0.15s (±0.00s)
+Average Model Evaluation Time: 546.32s (±0.00s)
+Average Model Ranking Time: 0.00s (±0.00s)
+Average End-to-End Time: 546.48s (±0.00s)
+Total Time: 546.48s
+
+MEMORY USAGE
+--------------------------------------------------------------------------------
+Average Peak Memory: 1312.16 MB
+Max Peak Memory: 1312.16 MB
+
+PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+Average F1 Score: 0.7946 ()
+Average PR-AUC: 0.4756 ()

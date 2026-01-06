@@ -123,7 +123,19 @@ class UMSTSADTestbedRunner:
         self.min_length = min_length
         self.normalize = normalize
         self.train_models_flag = train_models
-        self.algorithm_list = algorithm_list or ['DGHL', 'RNN', 'LSTMVAE', 'NN', 'LOF']
+        # Default algorithms: Use stable and reasonably fast models
+        # NN - Neural Network (fast, stable)
+        # LOF - Local Outlier Factor (fast, stable)  
+        # MD - Mean Deviation (fast, stable)
+        # KDE, ABOD, CBLOF, COF, SOS - PyOD-based models (stable)
+        # 
+        # Excluded by default due to issues:
+        # - RNN: Has tensor dimension bugs with certain window sizes
+        # - LSTMVAE: Very slow training (5-10 min per entity)
+        # - DGHL: Very slow training (5-10 min per entity)
+        #
+        # Users can still train all models with: --algorithms DGHL RNN LSTMVAE NN LOF MD KDE ABOD CBLOF COF SOS
+        self.algorithm_list = algorithm_list or ['NN', 'ABOD', 'CBLOF', 'COF']
         
         self.memory_monitor = MemoryMonitor()
         self.results_by_domain = defaultdict(list)
@@ -735,8 +747,8 @@ def main():
         '--algorithms',
         type=str,
         nargs='+',
-        default=['DGHL', 'RNN', 'LSTMVAE', 'NN', 'LOF'],
-        help='List of algorithms to train (e.g., --algorithms DGHL RNN NN LOF)'
+        default=None,  # Will use default list from __init__
+        help='List of algorithms to train (e.g., --algorithms NN LOF DGHL). Default: NN LOF MD KDE ABOD CBLOF COF SOS'
     )
     
     args = parser.parse_args()
