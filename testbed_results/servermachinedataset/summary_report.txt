@@ -1,9 +1,28 @@
 ================================================================================
 UMS-TSAD Results Summary - SERVERMACHINEDATASET
-Timestamp: 2026-01-06 16:14:25
+Timestamp: 2026-01-08 22:21:49
 ================================================================================
 
-Total Datasets: 3
-Successful: 0
-Failed: 3
+Total Datasets: 2
+Successful: 2
+Failed: 0
 
+COMPUTATIONAL OVERHEAD
+--------------------------------------------------------------------------------
+Average Initialization Time: 0.15s (±0.01s)
+Average Model Evaluation Time: 12852.59s (±2960.69s)
+Average Model Ranking Time: 0.00s (±0.00s)
+Average End-to-End Time: 15201.20s (±5308.48s)
+Total Time: 30402.41s
+
+MEMORY USAGE
+--------------------------------------------------------------------------------
+Average Peak Memory: 1796.84 MB
+Max Peak Memory: 1860.67 MB
+
+PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+Average F1 Score: 0.0000 (±0.0000)
+Median F1 Score: 0.0000
+Average PR-AUC: 0.0000 (±0.0000)
+Median PR-AUC: 0.0000
